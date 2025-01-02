@@ -45,7 +45,6 @@ def create_policy(new_policy):
     iam_client = boto3.client("iam")
     file_name = new_policy
     policy_name = file_name.split("/")[-1].split(".")[0]
-
     with open(file_name, mode="r") as policy_file:
         policy_contents = policy_file.read()
 
@@ -73,7 +72,8 @@ def create_policy(new_policy):
 
             if confirm_delete == policy_name.lower():
                 print(f"Deleting policy '{policy_name}'...")
-                delete_policy_remotely(policy_name)
+                iam_policy = get_iam_policy_arn(new_policy=new_policy)
+                delete_policy_remotely(new_policy=iam_policy)
 
                 # Retry creating the policy
                 try:
@@ -81,6 +81,7 @@ def create_policy(new_policy):
                         PolicyName=policy_name,
                         PolicyDocument=policy_contents,
                     )
+
                     arn = response["Policy"]["Arn"]
                     print(f"Policy recreated successfully!: {arn}")
                 except Exception as retry_exception:
@@ -100,9 +101,6 @@ def create_policy(new_policy):
     except Exception as e:
         print(f"Error creating policy '{policy_name}': {e}")
         delete_policy_file(new_policy)
-
-
-
 
     except Exception as e:
         print(f"Error creating policy {policy_name}:", e)
@@ -149,18 +147,54 @@ def get_user_input_policy():
             output.append(action)
             resource = input("Give me your resource ARN: ")
             output.append(resource)
+            break
 
         # Add the resource
-
-
-    print(output)
     return output
 
 # adding functionality to delete iam policy in aws if duplicate or if other reason
 
-def delete_policy_remotely():
-    pass
+def delete_policy_remotely(new_policy):
+    iam_client = boto3.client("iam")
+    policy_arn = get_iam_policy_arn(new_policy)
+    response = iam_client.list_entities_for_policy(
+        PolicyArn=policy_arn
+    )
+
+    # check if policy is attached using ListEntitiesForPolicy API
+    # show user what is it attached to # make this code MUCH prettier, a function which gets whatever you want from the response then call it
+    # three times with different params, users, groups and roles
+
+
+    print(response)
+    users_attached = []
+    roles_attached = []
+    groups_attached = []
+    users = response['PolicyUsers']
+    groups = response['PolicyGroups']
+    roles = response['PolicyRoles']
+    print(f"printing users: {users}")
+    user_names = [item['UserName'] for item in users]
+    role_names = [item['RoleName'] for item in roles]
+    group_names = [item['GroupName'] for item in groups]
+    print(f"printing usernames: {user_names}")
+    for user in user_names:
+        users_attached.append(user)
+    print(f"users attached: {users_attached}")
+    for group in group_names:
+        groups_attached.append(group)
+    print(f"groups attached: {groups_attached}")
+    for role in role_names:
+        roles_attached.append(role)
+    print(f"roles attached: {roles_attached}")
+
+
+
+
+    # if attached ask user if they want to continue with deletion
+    # if yes delete, if no delete detch policy then delete
 
 user_inputs = get_user_input_policy()
 policy_file_name = create_iam_policy_file(*user_inputs)
 create_policy(policy_file_name)
+
