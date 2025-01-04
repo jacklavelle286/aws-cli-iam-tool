@@ -2,8 +2,8 @@ import json
 import boto3
 import os
 
-# create iam policy functionality
-"""this is the section for creating the iam user"""
+
+# IAM policy functionality
 
 def create_iam_policy_file(name, sid, effect, service, resource, action=None):
     action_field = ["*"] if service == "*" else [f"{service}:{action}"]
@@ -161,38 +161,48 @@ def delete_policy_remotely(new_policy):
         PolicyArn=policy_arn
     )
 
-    # check if policy is attached using ListEntitiesForPolicy API
-    # show user what is it attached to # make this code MUCH prettier, a function which gets whatever you want from the response then call it
-    # three times with different params, users, groups and roles
+    entities = [list_attached_entities("Users", response), list_attached_entities("Roles", response),
+                list_attached_entities("Groups", response)]
 
+    print(f"The policy has the following attachments: \n Users: {entities[0]}  \n Roles: {entities[1]} \n Groups: {entities[2]}")
 
-    print(response)
-    users_attached = []
-    roles_attached = []
-    groups_attached = []
-    users = response['PolicyUsers']
-    groups = response['PolicyGroups']
-    roles = response['PolicyRoles']
-    print(f"printing users: {users}")
-    user_names = [item['UserName'] for item in users]
-    role_names = [item['RoleName'] for item in roles]
-    group_names = [item['GroupName'] for item in groups]
-    print(f"printing usernames: {user_names}")
-    for user in user_names:
-        users_attached.append(user)
-    print(f"users attached: {users_attached}")
-    for group in group_names:
-        groups_attached.append(group)
-    print(f"groups attached: {groups_attached}")
-    for role in role_names:
-        roles_attached.append(role)
-    print(f"roles attached: {roles_attached}")
+    confirm_delete = input("Do you want to detach all entities from this policy and confirm deletion? (yes or no) ").lower()
+    if confirm_delete != "yes" or confirm_delete != "no":
+        print("invalid option, try again. ")
+    elif confirm_delete == "no":
+        print("Exiting deletion process...")
+        exit()
+    elif confirm_delete == "yes":
+        # detach all entities
+        # confirm result
+        print("Deletion confirmed.. ")
+        exit()
+    else: print("Error, exiting programme. ")
 
 
 
 
-    # if attached ask user if they want to continue with deletion
-    # if yes delete, if no delete detch policy then delete
+
+
+
+def list_attached_entities(entity_type, response): # entity type is either Users, Groups or Roles
+    entities_list = []
+    entities = response[f'Policy{entity_type}']
+    entity_type_singular = entity_type[:-1]
+    entity_names = [item[f'{entity_type_singular}Name'] for item in entities]
+    for entity in entity_names:
+        entities_list.append(entity)
+    return entities_list
+
+
+def delete_attached_entities(entities, policy_arn) :
+    iam_client = boto3.client("iam")
+    all_entities = [item for sublist in entities for item in sublist]
+    print(all_entities)
+    for item in all_entities:
+        pass
+    # DetachUserPolicy, DetachGroupPolicy, or DetachRolePolicy depending on what is passed in! 
+
 
 user_inputs = get_user_input_policy()
 policy_file_name = create_iam_policy_file(*user_inputs)
