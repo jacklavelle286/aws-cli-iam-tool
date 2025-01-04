@@ -2,9 +2,24 @@ import json
 import boto3
 import os
 
+# User input functionality
+def get_user_input_policy():
+    output = []
+    name = input("Enter your policy name: ").strip().lower()
+    output.append(name)
+    sid = input("Give me your SID: ").strip()
+    output.append({"sid": sid})
+    effect = input("Give me your effect (Allow or Deny): ").strip().capitalize()
+    output.append({"effect": effect})
+    service = input("Give me your service (e.g., s3): ").strip().lower()
+    output.append({"service": service})
+    action = input("Give me your action (e.g., GetObject): ").strip()
+    output.append({"action": action})
+    resource = input("Give me your resource ARN: ").strip()
+    output.append({"resource": resource})
+    return output
 
-# IAM policy functionality
-
+# IAM policy file creation functionality
 def create_iam_policy_file(name, sid, effect, service, resource, action=None):
     action_field = ["*"] if service == "*" else [f"{service}:{action}"]
     policy_dict = {
@@ -39,8 +54,7 @@ def create_iam_policy_file(name, sid, effect, service, resource, action=None):
 
     return new_file  # Return the new file name
 
-
-
+# IAM policy creation functionality
 def create_policy(new_policy):
     iam_client = boto3.client("iam")
     file_name = new_policy
@@ -97,14 +111,12 @@ def create_policy(new_policy):
 
     except iam_client.exceptions.MalformedPolicyDocumentException as e:
         print(f"Malformed policy document for '{policy_name}': {e}")
-        delete_policy_file(new_policy)
-    except Exception as e:
-        print(f"Error creating policy '{policy_name}': {e}")
-        delete_policy_file(new_policy)
-
+        #delete_policy_file(new_policy)
     except Exception as e:
         print(f"Error creating policy {policy_name}:", e)
         delete_policy_file(new_policy=new_policy)
+
+# Helper functions for IAM policy management
 
 def get_iam_policy_arn(new_policy):
     iam_client = boto3.client("iam")
@@ -119,41 +131,6 @@ def delete_policy_file(new_policy):
     os.remove(new_policy)
     print(f"policy successfully locally deleted: {new_policy}")
 
-
-def get_user_input_policy():
-    while True:
-        output = []
-        name = input("Enter your policy name: ").lower()
-        output.append(name)
-        sid = input("Give me your SID: ")
-        output.append(sid)
-        while True:
-            effect = input("Give me your effect (Allow or Deny): ").capitalize()
-            if effect != "Allow" and effect != "Deny":
-                print("Only Allow or Deny will work here, try again. ")
-            else:
-                break
-        output.append(effect)
-        service = input("Give me your service (e.g., s3): ")
-        output.append(service)
-
-        # Handle wildcard service
-        if service == "*":
-            resource = input("Give me your resource ARN: ")
-            output.append(resource)
-            break
-        else:
-            action = input("Give me your action (e.g., GetObject): ")
-            output.append(action)
-            resource = input("Give me your resource ARN: ")
-            output.append(resource)
-            break
-
-        # Add the resource
-    return output
-
-# adding functionality to delete iam policy in aws if duplicate or if other reason
-
 def delete_policy_remotely(new_policy):
     iam_client = boto3.client("iam")
     policy_arn = get_iam_policy_arn(new_policy)
@@ -167,23 +144,18 @@ def delete_policy_remotely(new_policy):
     print(f"The policy has the following attachments: \n Users: {entities[0]}  \n Roles: {entities[1]} \n Groups: {entities[2]}")
 
     confirm_delete = input("Do you want to detach all entities from this policy and confirm deletion? (yes or no) ").lower()
-    if confirm_delete != "yes" or confirm_delete != "no":
+    if confirm_delete != "yes" and confirm_delete != "no":
         print("invalid option, try again. ")
     elif confirm_delete == "no":
         print("Exiting deletion process...")
         exit()
     elif confirm_delete == "yes":
         # detach all entities
+        delete_attached_entities(entities, policy_arn)
         # confirm result
         print("Deletion confirmed.. ")
         exit()
     else: print("Error, exiting programme. ")
-
-
-
-
-
-
 
 def list_attached_entities(entity_type, response): # entity type is either Users, Groups or Roles
     entities_list = []
@@ -194,17 +166,15 @@ def list_attached_entities(entity_type, response): # entity type is either Users
         entities_list.append(entity)
     return entities_list
 
-
-def delete_attached_entities(entities, policy_arn) :
+def delete_attached_entities(entities, policy_arn):
     iam_client = boto3.client("iam")
     all_entities = [item for sublist in entities for item in sublist]
     print(all_entities)
     for item in all_entities:
-        pass
-    # DetachUserPolicy, DetachGroupPolicy, or DetachRolePolicy depending on what is passed in! 
+        print(item)
+    # DetachUserPolicy, DetachGroupPolicy, or DetachRolePolicy depending on what is passed in!
 
-
+# Main program
 user_inputs = get_user_input_policy()
 policy_file_name = create_iam_policy_file(*user_inputs)
 create_policy(policy_file_name)
-

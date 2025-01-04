@@ -2,13 +2,19 @@
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "sid",
-            "Effect": "Allow",
+            "Sid": {
+                "sid": "sid"
+            },
+            "Effect": {
+                "effect": "Allow"
+            },
             "Action": [
-                "*"
+                "{'service': 's3'}:{'resource': 'arn:aws:s3:::aws-lz-state-bucket-testing-28696'}"
             ],
             "Resource": [
-                "arn:aws:s3:::aws-lz-state-bucket-testing-28696"
+                {
+                    "action": "*"
+                }
             ]
         }
     ]
