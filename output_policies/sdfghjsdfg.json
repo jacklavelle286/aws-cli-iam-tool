@@ -2,13 +2,13 @@
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "sid",
+            "Sid": "sdfsdf",
             "Effect": "Allow",
             "Action": [
-                "*"
+                "s3:arn:aws:s3:::aws-lz-state-bucket-testing-28696"
             ],
             "Resource": [
-                "arn:aws:s3:::aws-lz-state-bucket-testing-28696"
+                "*"
             ]
         }
     ]
