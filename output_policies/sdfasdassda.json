@@ -1,0 +1,10 @@
+{
+    "Sid": "sid",
+    "Effect": "choice",
+    "Action": [
+        "service:Action"
+    ],
+    "Resource": [
+        "resource_arn"
+    ]
+}

@@ -37,24 +37,45 @@ def create_iam_policy_file(input_data):
         f"{input_data['service']}:{input_data['action']}"]
 
     policy_dict = {
-        "Sid": input_data["sid"],
-        "Effect": input_data["effect"],
-        "Action": action_field,
-        "Resource": [input_data["resource"]]
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": input_data["sid"],
+                "Effect": input_data["effect"],
+                "Action": action_field,
+                "Resource": [input_data["resource"]]
+            }
+        ]
     }
 
-    with open("./templates/policy_template.json", mode="r") as policy_file:
-        policy_data = json.load(policy_file)
+    # Ask user if they want to add more statement blocks
+    add_more = input("Do you want to add another statement block? (yes/no): ").strip().lower()
+    while add_more == "yes":
+        sid = input("Give me another SID: ").strip()
+        effect = input("Give me the effect (Allow or Deny): ").strip().capitalize()
+        service = input("Give me the service (e.g., s3): ").strip().lower()
+        action = input("Give me the action (e.g., GetObject): ").strip()
+        resource = input("Give me the resource ARN: ").strip()
 
-    for statement in policy_data.get("Statement", []):
-        statement.update(policy_dict)
+        action_field = ["*"] if service == "*" or action == "*" else [f"{service}:{action}"]
 
+        new_block = {
+            "Sid": sid,
+            "Effect": effect,
+            "Action": action_field,
+            "Resource": [resource]
+        }
+        policy_dict["Statement"].append(new_block)
+        add_more = input("Do you want to add another statement block? (yes/no): ").strip().lower()
+
+    # Save the full policy to a file
     new_file = f"./output_policies/{input_data['name']}.json"
     with open(new_file, mode="w") as new_policy_file:
-        json.dump(policy_data, new_policy_file, indent=4)
+        json.dump(policy_dict, new_policy_file, indent=4)
         print(f"Policy file created: {new_file}. \n Creating policy in AWS...")
 
     return new_file
+
 
 
 # IAM Policy Creation Functionality
@@ -80,7 +101,7 @@ def create_policy(new_policy):
         handle_existing_policy(policy_name, new_policy)
     except iam_client.exceptions.MalformedPolicyDocumentException as e:
         print(f"Malformed policy document for '{policy_name}': {e}")
-        delete_policy_file(new_policy=new_policy)
+        #delete_policy_file(new_policy=new_policy)
     except Exception as e:
         print(f"Error creating policy '{policy_name}': {e}")
         delete_policy_file(new_policy=new_policy)
@@ -192,3 +213,6 @@ if __name__ == "__main__":
     user_inputs = get_user_input_policy()
     policy_file_name = create_iam_policy_file(user_inputs)
     create_policy(policy_file_name)
+
+
+
