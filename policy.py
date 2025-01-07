@@ -2,7 +2,8 @@ import json
 import boto3
 import os
 
-
+#1. add support for multiple blocks within a statement i.e.
+# ask - do you want to have another block? and y / n creates a new block within the policy
 # User Input Functionality
 def get_user_input_policy():
     """
@@ -24,8 +25,6 @@ def get_user_input_policy():
         input_data["action"] = "*"
     elif input_data["action"] == "*":
         print("Wildcard for action detected. This policy will apply to all actions for the specified service.")
-
-    print(f"Collected Input Data: {input_data}")
     return input_data
 
 
