@@ -1,8 +1,6 @@
-import json
-import boto3
-import os
-
+from . import json
 from . import iam_client
+from . import os
 
 # User Input Functionality
 def get_user_input_policy():
@@ -188,7 +186,7 @@ def delete_policy_file(new_policy):
     """
     Delete a policy JSON file locally.
     """
-    os.remove(new_policy)
+    os.remove(f"output_policies/{new_policy}")
     print(f"policy successfully locally deleted: {new_policy}")
 
 
@@ -203,9 +201,23 @@ def delete_all_policies_locally():
 
     policies = os.listdir(policies_directory)
     for policy in policies:
+        print(f"Removing policy: {policy}")
         policy_path = os.path.join(policies_directory, policy)
         os.remove(policy_path)
     print("Removed all policies locally.")
 
 
+def list_local_policy_files():
+    policies_directory = "./output_policies"
+    policies_list = os.listdir(policies_directory)
+    return policies_list
 
+def list_policies_in_aws():
+    response = iam_client.list_policies(
+        Scope='Local',
+        OnlyAttached=False,
+        PolicyUsageFilter='PermissionsPolicy'
+    )
+    policies = response.get("Policies", [])
+    policy_names = [policy['PolicyName'] for policy in policies]
+    return policy_names
