@@ -1,9 +1,7 @@
-import json
-import boto3
-import os
+from . import json
+from . import iam_client
+from . import os
 
-#1. add support for multiple blocks within a statement i.e.
-# ask - do you want to have another block? and y / n creates a new block within the policy
 # User Input Functionality
 def get_user_input_policy():
     """
@@ -83,7 +81,7 @@ def create_policy(new_policy):
     """
     Create an IAM policy in AWS using the generated JSON policy file.
     """
-    iam_client = boto3.client("iam")
+    # iam_client = boto3.client("iam")
     policy_name = os.path.basename(new_policy).split(".")[0]
 
     with open(new_policy, mode="r") as policy_file:
@@ -128,7 +126,7 @@ def get_iam_policy_arn(new_policy):
     """
     Get the ARN of an existing policy by name.
     """
-    iam_client = boto3.client("iam")
+    # iam_client = boto3.client("iam")
     policy_name = os.path.basename(new_policy).split(".")[0]
     paginator = iam_client.get_paginator('list_policies')
     for page in paginator.paginate(Scope="All"):
@@ -141,7 +139,7 @@ def delete_policy_remotely(new_policy):
     """
     Delete an existing IAM policy remotely, detaching it from all entities.
     """
-    iam_client = boto3.client("iam")
+    # iam_client = boto3.client("iam")
     policy_arn = get_iam_policy_arn(new_policy)
 
     if not policy_arn:
@@ -166,7 +164,7 @@ def detach_entities(response, policy_arn):
     """
     Detach IAM policy from users, groups, and roles.
     """
-    iam_client = boto3.client("iam")
+    # iam_client = boto3.client("iam")
 
     # Detach from users
     for user in response.get("PolicyUsers", []):
@@ -188,7 +186,7 @@ def delete_policy_file(new_policy):
     """
     Delete a policy JSON file locally.
     """
-    os.remove(new_policy)
+    os.remove(f"output_policies/{new_policy}")
     print(f"policy successfully locally deleted: {new_policy}")
 
 
@@ -203,16 +201,23 @@ def delete_all_policies_locally():
 
     policies = os.listdir(policies_directory)
     for policy in policies:
+        print(f"Removing policy: {policy}")
         policy_path = os.path.join(policies_directory, policy)
         os.remove(policy_path)
     print("Removed all policies locally.")
 
 
-# Main Program Execution
-if __name__ == "__main__":
-    user_inputs = get_user_input_policy()
-    policy_file_name = create_iam_policy_file(user_inputs)
-    create_policy(policy_file_name)
+def list_local_policy_files():
+    policies_directory = "./output_policies"
+    policies_list = os.listdir(policies_directory)
+    return policies_list
 
-
-
+def list_policies_in_aws():
+    response = iam_client.list_policies(
+        Scope='Local',
+        OnlyAttached=False,
+        PolicyUsageFilter='PermissionsPolicy'
+    )
+    policies = response.get("Policies", [])
+    policy_names = [policy['PolicyName'] for policy in policies]
+    return policy_names
