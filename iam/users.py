@@ -22,26 +22,38 @@ iam_client = boto3.client("iam")
 # rotate access keys
 
 
-def list_iam_users(username=None):
-    if username:
-        response = iam_client.list_users(username)
-        return response
-    else:
+def list_iam_users():
         response = iam_client.list_users()
-        users = response.get('Users', [])
-        users_names = [username['UserName'] for username in users]
-        return users_names
+        users = response.get("Users", [])
+        user_names = [name['UserName'] for name in users]
+        return user_names
+
+
 
 # list attached polices for users (this will be reused)
 
-# def list_attached_user_policies(username):
-#     list_iam_users()
-#
-# def delete_iam_user(username):
-#     response = iam_client.delete_user(
-#         UserName=username
-#     )
-#     return response
+def list_attached_user_policies(username, managed):
+    if managed is True:
+        attached_inline_policies_response = iam_client.list_user_policies(
+            UserName=username
+        )
+        attached_inline_policies = attached_inline_policies_response.get("PolicyNames", [])
+        return attached_inline_policies
 
-user = "sdfs"
-list_iam_users(username=user)
+
+    else:
+        attached_managed_policies_response = iam_client.list_attached_user_policies(
+            UserName=username
+        )
+
+        attached_managed_policies_response = attached_managed_policies_response.get("PolicyNames", [])
+        return attached_managed_policies_response
+
+
+
+def delete_iam_user(username):
+    response = iam_client.delete_user(
+        UserName=username
+    )
+    return response
+

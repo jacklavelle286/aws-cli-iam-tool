@@ -90,9 +90,23 @@ def main():
                         if policies_attached != "y" and policies_attached != "n":
                             print("Invalid option. ")
                         elif policies_attached == "y":
-                            print("listing attached policies for user")
+                            while True:
+                                user_for_list_policies = input("Enter which user you want to see the policies for: ")
+                                if user_for_list_policies not in list_of_users:
+                                    print("Invalid option, user does not exist")
+                                else:
+                                    print(f"listing polices for {user_for_list_policies}")
+                                    inline_policies_attached = users.list_attached_user_policies(username=user_for_list_policies,managed=False)
+                                    for i_policy in inline_policies_attached:
+                                        print(f"Inline Policies attached: {i_policy}")
+                                    managed_policies_attached = users.list_attached_user_policies(username=user_for_list_policies,managed=True)
+                                    for m_policy in managed_policies_attached:
+                                        print(f"Managed Policies attached: {m_policy}")
+                                    break
+
                         elif policies_attached == "n":
                             break
+
                 elif users_choice == "4":
                     user_to_delete = input("Enter the name of the user you want to delete: ").lower()
                     users.delete_iam_user(user_to_delete)
