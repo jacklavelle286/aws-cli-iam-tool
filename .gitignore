@@ -1,1 +1,14 @@
-.idea/
+# Byte-compiled files
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment
+.env
+
+# Packages
+*.egg
+*.egg-info
+dist/
+build/
+

@@ -15,7 +15,7 @@ def main():
                                                                               |___/                                                                |_|     |_|
 """)
 
-    print("Welcome to the IAM Python Wrapper")
+    print("Welcome to the PIAM Python Wrapper")
     while True:
         choice = input("Do you want to work with IAM Policies (1), Users (2), Roles (3) or Groups? (4): (1,2,3 or 4) or press 'q' to quit the programme. ").lower()
         if choice == "1":
