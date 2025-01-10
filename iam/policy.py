@@ -46,6 +46,8 @@ def create_iam_policy_file(input_data):
         ]
     }
 
+    print(type(policy_dict))
+    print(policy_dict)
     # Ask user if they want to add more statement blocks
     add_more = input("Do you want to add another statement block? (yes/no): ").strip().lower()
     while add_more == "yes":

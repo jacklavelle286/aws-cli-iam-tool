@@ -17,7 +17,7 @@ def main():
 
     print("Welcome to the IAM Python Wrapper")
     while True:
-        choice = input("Do you want to work with IAM Policies, Users, Roles or Groups?: (1,2,3 or 4) or press 'q' to quit the programme. ").lower()
+        choice = input("Do you want to work with IAM Policies (1), Users (2), Roles (3) or Groups? (4): (1,2,3 or 4) or press 'q' to quit the programme. ").lower()
         if choice == "1":
             print("Building IAM Polices..")
             while True:
@@ -66,11 +66,37 @@ def main():
                                 policy.delete_policy_remotely(deletion_choice)
                                 print(f"deleting {deletion_choice}")
                                 break
-
+                elif policy_choice == "4":
+                    print("Returning to main menu..")
+                    break
 
 
         elif choice == '2':
             print("Building IAM Users.... ")
+            while True:
+                users_choice = input("Select 1 to proceed with IAM user creation, 2 to interact with an existing IAM User, 3 to list IAM Users, 4 to delete IAM Users, or 5 to return to the main menu: ")
+                if users_choice == "1":
+                    print("Creating user..")
+                elif users_choice == "2":
+                    print("interacting with iam users..")
+                elif users_choice == "3":
+                    print("Listing iam users..")
+                    list_of_users = users.list_iam_users()
+                    print("List of users: ")
+                    for user in list_of_users:
+                        print(user)
+                    while True:
+                        policies_attached = input("Do you want to see the attached policies of any users? (y/n):  ").lower()
+                        if policies_attached != "y" and policies_attached != "n":
+                            print("Invalid option. ")
+                        elif policies_attached == "y":
+                            print("listing attached policies for user")
+                        elif policies_attached == "n":
+                            break
+                elif users_choice == "4":
+                    user_to_delete = input("Enter the name of the user you want to delete: ").lower()
+                    users.delete_iam_user(user_to_delete)
+
 
         elif choice == "q":
             print("Exiting the programme..")
