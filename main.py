@@ -95,13 +95,25 @@ def main():
                                 if user_for_list_policies not in list_of_users:
                                     print("Invalid option, user does not exist")
                                 else:
-                                    print(f"listing polices for {user_for_list_policies}")
-                                    inline_policies_attached = users.list_attached_user_policies(username=user_for_list_policies,managed=False)
+                                    print(f"listing polices for {user_for_list_policies}...")
+                                    inline_list = []
+                                    inline_policies_attached = users.list_attached_user_policies(
+                                        username=user_for_list_policies, managed=False)
                                     for i_policy in inline_policies_attached:
-                                        print(f"Inline Policies attached: {i_policy}")
-                                    managed_policies_attached = users.list_attached_user_policies(username=user_for_list_policies,managed=True)
+                                        inline_list.append(i_policy)
+                                    if not inline_list:
+                                        print("No inline Policies attached")
+                                    print(f"Inline Policies attached: \n")
+                                    for i_policy in inline_list:
+                                        print(f"- {i_policy} \n")
+
+                                    managed_policies_attached = users.list_attached_user_policies(
+                                        username=user_for_list_policies, managed=True)
+                                    if not managed_policies_attached:
+                                        print("No managed Policies attached")
+                                    print(f"Managed Policies attached: \n")
                                     for m_policy in managed_policies_attached:
-                                        print(f"Managed Policies attached: {m_policy}")
+                                        print(f"- {m_policy}\n")
                                     break
 
                         elif policies_attached == "n":
@@ -111,13 +123,17 @@ def main():
                     user_to_delete = input("Enter the name of the user you want to delete: ").lower()
                     users.delete_iam_user(user_to_delete)
 
-
+                elif users_choice == "5":
+                    print("Main menu.. ")
+                    break
         elif choice == "q":
             print("Exiting the programme..")
             exit()
 
 if __name__ == "__main__":
     main()
+
+
 
 
 

@@ -33,7 +33,13 @@ def list_iam_users():
 # list attached polices for users (this will be reused)
 
 def list_attached_user_policies(username, managed):
-    if managed is True:
+    if managed:
+        attached_managed_policies_response = iam_client.list_attached_user_policies(
+            UserName=username
+        )
+        attached_managed_policies = attached_managed_policies_response.get("AttachedPolicies", [])
+        return [policy["PolicyName"] for policy in attached_managed_policies]
+    else:
         attached_inline_policies_response = iam_client.list_user_policies(
             UserName=username
         )
@@ -41,13 +47,6 @@ def list_attached_user_policies(username, managed):
         return attached_inline_policies
 
 
-    else:
-        attached_managed_policies_response = iam_client.list_attached_user_policies(
-            UserName=username
-        )
-
-        attached_managed_policies_response = attached_managed_policies_response.get("PolicyNames", [])
-        return attached_managed_policies_response
 
 
 
