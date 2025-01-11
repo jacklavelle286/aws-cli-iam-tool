@@ -1,7 +1,7 @@
-from iam import policy, users
+from iam import iam_policy, users
 
 
-# Main Program Execution for policy.py
+# Main Program Execution for iam_policy.py
 
 def main():
     print(r"""
@@ -23,30 +23,30 @@ def main():
             while True:
                 policy_choice = input("Select 1 to proceed with policy creation, 2 to list or delete local policy files, 3 to list policies within AWS or delete a specific policy within AWS, or 4 to return to the main menu: ").lower()
                 if policy_choice == "1":
-                    policy.user_inputs = policy.get_user_input_policy()
-                    policy.policy_file_name = policy.create_iam_policy_file(policy.user_inputs)
-                    policy.create_policy(policy.policy_file_name)
+                    iam_policy.user_inputs = iam_policy.get_user_input_policy()
+                    iam_policy.policy_file_name = iam_policy.create_iam_policy_file(iam_policy.user_inputs)
+                    iam_policy.create_policy(iam_policy.policy_file_name)
                 elif policy_choice == "2":
                     while True:
                         local_deletion_choice = input("Either name a local file by name to delete it, or select * to remove all local policy files: ")
-                        policy_list = policy.list_local_policy_files()
+                        policy_list = iam_policy.list_local_policy_files()
                         if local_deletion_choice != "*" and local_deletion_choice not in policy_list:
                             print("Invalid choice - try again - either not a wildcard, or policy doesn't exist locally.")
                             list_option = input("Press 'l' if you want to list the policies locally: ").lower()
                             if list_option != "l":
                                 pass
                             else:
-                                policies = policy.list_local_policy_files()
+                                policies = iam_policy.list_local_policy_files()
                                 print("Local policies: \n")
                                 for item in policies:
                                     print(item)
                         elif local_deletion_choice == "*":
                             print("Deleting all locally stored IAM policy files...")
-                            policy.delete_all_policies_locally()
+                            iam_policy.delete_all_policies_locally()
                             break
                         else:
                             print(f"Deleting {local_deletion_choice}...")
-                            policy.delete_policy_file(local_deletion_choice)
+                            iam_policy.delete_policy_file(local_deletion_choice)
                             break
                 elif policy_choice == "3":
                     print("Listing or deleting policies in AWS...")
@@ -54,16 +54,16 @@ def main():
                         deletion_choice = input("Which policy do you want to delete within AWS? Press 'l' to list all policies customer managed policies in AWS: ")
                         if deletion_choice == "l":
                             print("listing policies in AWS...")
-                            policy_list = policy.list_policies_in_aws()
+                            policy_list = iam_policy.list_policies_in_aws()
                             for item in policy_list:
                                 print(item)
                         else:
-                            policy_list = policy.list_policies_in_aws()
+                            policy_list = iam_policy.list_policies_in_aws()
                             if policy_choice not in policy_list:
                                 print("policy is not found in AWS. ")
                                 break
                             else:
-                                policy.delete_policy_remotely(deletion_choice)
+                                iam_policy.delete_policy_remotely(deletion_choice)
                                 print(f"deleting {deletion_choice}")
                                 break
                 elif policy_choice == "4":
