@@ -6,7 +6,7 @@ Python-based wrapper to make IAM management faster and easier. It is based upon 
 
 ---
 
-## Problem Statement
+## The Problem Statement
 Managing IAM resources using the AWS CLI can be complex and time-consuming, especially when writing and managing JSON policy documents manually. The **AWS CLI IAM Tool** solves these problems by:
 - Providing an interactive interface for creating and managing IAM resources, this build JSON documents via a CLI tool based on user input to get perfectly formatted, well written polices.
 - Reducing the time, effort, and errors associated with managing IAM - maintaining security in the process.
