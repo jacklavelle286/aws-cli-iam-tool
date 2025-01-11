@@ -1,6 +1,6 @@
-from . import json
 from . import iam_client
 from . import os
+from . import json
 
 # User Input Functionality
 def get_user_input_policy():
@@ -46,6 +46,8 @@ def create_iam_policy_file(input_data):
         ]
     }
 
+    print(type(policy_dict))
+    print(policy_dict)
     # Ask user if they want to add more statement blocks
     add_more = input("Do you want to add another statement block? (yes/no): ").strip().lower()
     while add_more == "yes":
@@ -81,7 +83,7 @@ def create_policy(new_policy):
     """
     Create an IAM policy in AWS using the generated JSON policy file.
     """
-    # iam_client = boto3.client("iam")
+
     policy_name = os.path.basename(new_policy).split(".")[0]
 
     with open(new_policy, mode="r") as policy_file:
@@ -126,7 +128,7 @@ def get_iam_policy_arn(new_policy):
     """
     Get the ARN of an existing policy by name.
     """
-    # iam_client = boto3.client("iam")
+
     policy_name = os.path.basename(new_policy).split(".")[0]
     paginator = iam_client.get_paginator('list_policies')
     for page in paginator.paginate(Scope="All"):
@@ -139,7 +141,7 @@ def delete_policy_remotely(new_policy):
     """
     Delete an existing IAM policy remotely, detaching it from all entities.
     """
-    # iam_client = boto3.client("iam")
+
     policy_arn = get_iam_policy_arn(new_policy)
 
     if not policy_arn:
@@ -164,7 +166,7 @@ def detach_entities(response, policy_arn):
     """
     Detach IAM policy from users, groups, and roles.
     """
-    # iam_client = boto3.client("iam")
+
 
     # Detach from users
     for user in response.get("PolicyUsers", []):
