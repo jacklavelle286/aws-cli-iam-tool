@@ -17,13 +17,19 @@ from iam import iam_policy
 # rotate access keys
 
 
-# add extensive error handling
+# add extensive error handling within the functions themselves
 
 
 def list_iam_users():
-    response = iam_client.list_users()
-    users = response.get("Users", [])
-    return [user['UserName'] for user in users]
+    try:
+        response = iam_client.list_users()
+        users = response.get("Users", [])
+        return [user['UserName'] for user in users]
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failed: {e}. Try again later.")
+    except Exception as e:
+        print(f"Service failed. {e} - try again later.")
+        return []
 
 
 def list_attached_user_policies(username, managed):
@@ -49,6 +55,7 @@ def list_attached_user_policies(username, managed):
         attached_inline_policies = attached_inline_policies_response.get("PolicyNames", [])
         return attached_inline_policies
 
+# start here
 def list_access_keys(username):
     access_keys = iam_client.list_access_keys(UserName=username)
     key_ids = [key['AccessKeyId'] for key in access_keys.get("AccessKeyMetadata", [])]
