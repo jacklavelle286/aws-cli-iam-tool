@@ -74,7 +74,7 @@ def main():
         elif choice == '2':
             print("Building IAM Users.... ")
             while True:
-                users_choice = input("Select 1 to proceed with IAM user creation, 2 to interact with an existing IAM User, 3 to list IAM Users, 4 to delete IAM Users, or 5 to return to the main menu: ")
+                users_choice = input("Select 1 to proceed with IAM user creation, 2 to interact with an existing IAM User, 3 to create a new iam user or 4 to delete a iam user. Press anything else to return to the main menu: ")
                 if users_choice == "1":
                     print("Creating user..")
                 elif users_choice == "2":
@@ -99,33 +99,36 @@ def main():
                             print("Invalid option. ")
                         elif policies_attached == "y":
                             # edit workflow from here
-                            user_for_list_policies = input("Enter which user you want to see the policies for: ")
-                            if user_for_list_policies not in list_of_users:
-                                print("Invalid option, user does not exist")
-                            else:
-                                print(f"listing polices for {user_for_list_policies}...")
-                                inline_list = []
-                                inline_policies_attached = users.list_attached_user_policies(
-                                    username=user_for_list_policies, managed=False)
-                                for i_policy in inline_policies_attached:
-                                    inline_list.append(i_policy)
-                                if not inline_list:
-                                    print("No inline Policies attached")
-                                print(f"Inline Policies attached: \n")
-                                for i_policy in inline_list:
-                                    print(f"- {i_policy} \n")
+                            # enter username
+                            # do you want to List policies (1) add policies (2) change password (3) get access keys (4) revoke access keys (5) rotate access keys (6) or delete user (7) press anything else to quit.
 
-                                managed_policies_attached = users.list_attached_user_policies(
-                                    username=user_for_list_policies, managed=True)
-                                if not managed_policies_attached:
-                                    print("No managed Policies attached")
-                                print(f"Managed Policies attached: \n")
-                                for m_policy in managed_policies_attached:
-                                    print(f"- {m_policy}\n")
-
-
-                        elif policies_attached == "n":
-                            break
+                        #     user_for_list_policies = input("Enter which user you want to see the policies for: ")
+                        #     if user_for_list_policies not in list_of_users:
+                        #         print("Invalid option, user does not exist")
+                        #     else:
+                        #         print(f"listing polices for {user_for_list_policies}...")
+                        #         inline_list = []
+                        #         inline_policies_attached = users.list_attached_user_policies(
+                        #             username=user_for_list_policies, managed=False)
+                        #         for i_policy in inline_policies_attached:
+                        #             inline_list.append(i_policy)
+                        #         if not inline_list:
+                        #             print("No inline Policies attached")
+                        #         print(f"Inline Policies attached: \n")
+                        #         for i_policy in inline_list:
+                        #             print(f"- {i_policy} \n")
+                        #
+                        #         managed_policies_attached = users.list_attached_user_policies(
+                        #             username=user_for_list_policies, managed=True)
+                        #         if not managed_policies_attached:
+                        #             print("No managed Policies attached")
+                        #         print(f"Managed Policies attached: \n")
+                        #         for m_policy in managed_policies_attached:
+                        #             print(f"- {m_policy}\n")
+                        #
+                        #
+                        # elif policies_attached == "n":
+                        #     break
 
                 elif users_choice == "4":
                     user_to_delete = input("Enter the name of the user you want to delete: ").lower()
