@@ -1,22 +1,11 @@
-# from . import json
-# from . import iam_client
-# from . import os
-
-import boto3
-import json
-import os
-
+from . import iam_client
 from iam import iam_policy
-
-iam_client = boto3.client("iam")
-
 
 
 # TODO
 
 # change it so when with iam users either 1. create new one, or 2. you list the iam users, choose one, then choose what operations you want to do i.e add policies, remove, delete etc etc
 # create iam user
-# delete iam user
 
 # interact with iam user:
 # list policies
@@ -26,24 +15,31 @@ iam_client = boto3.client("iam")
 # revoke access keys
 # assign MFA
 # rotate access keys
+
+
 # add extensive error handling
 
 
 def list_iam_users():
-        response = iam_client.list_users()
-        users = response.get("Users", [])
-        user_names = [name['UserName'] for name in users]
-        return user_names
+    response = iam_client.list_users()
+    users = response.get("Users", [])
+    return [user['UserName'] for user in users]
 
-
-
-# list attached polices for users (this will be reused)
 
 def list_attached_user_policies(username, managed):
     if managed:
-        attached_managed_policies_response = iam_client.list_attached_user_policies(
-            UserName=username
-        )
+        try:
+            attached_managed_policies_response = iam_client.list_attached_user_policies(UserName=username)
+        except iam_client.list_attached_user_policies.NoSuchEntityException as e:
+            print(f"No policies attached to {username}: {e}")
+        except iam_client.list_attached_user_policies.InvalidInputException as e:
+            print(f"Invalid input: {e}")
+        except iam_client.list_attached_user_policies.ServiceFailureException:
+            print("Service failure, try again later.")
+        except Exception:
+            print(f"Error listing policies attached to {username}.")
+
+
         attached_managed_policies = attached_managed_policies_response.get("AttachedPolicies", [])
         return [policy["PolicyName"] for policy in attached_managed_policies]
     else:
@@ -127,16 +123,12 @@ def delete_iam_user(username):
     for id in devices_ids:
         print(f"Deactivating: {id}")
         iam_client.deactivate_mfa_device(UserName=username, SerialNumber=id)
-    # for id in devices_ids:
-    #     print(f"Deleting: {id}")
-    #     iam_client.delete_virtual_mfa_device(SerialNumber=id)
     print("Deleting Login Profile...")
     iam_client.delete_login_profile(UserName=username)
     users_groups = list_groups_for_user(username)
     for group in users_groups:
         print(f"Removing user from group: {group}")
         iam_client.remove_user_from_group(UserName=username, GroupName=group)
-    # delete user
     print("Deleting user...")
     iam_client.delete_user(UserName=username)
     print("User Deleted!")

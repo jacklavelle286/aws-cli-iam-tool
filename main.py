@@ -1,5 +1,5 @@
 from iam import iam_policy, users
-
+from iam import iam_client
 
 # Main Program Execution for iam_policy.py
 
@@ -81,40 +81,47 @@ def main():
                     print("interacting with iam users..")
                 elif users_choice == "3":
                     print("Listing iam users..")
-                    list_of_users = users.list_iam_users()
-                    print("List of users: ")
-                    for user in list_of_users:
-                        print(user)
+                    try:
+                        list_of_users = users.list_iam_users()
+                        if list_of_users:
+                            print("IAM Users:")
+                            for user in list_of_users:
+                                print(f"- {user}")
+                        else:
+                            print("No IAM users found.")
+                    except iam_client.exceptions.ServiceFailureException as e:
+                        print(f"Service failed: {e}. Try again later.")
+                    except Exception as e:
+                        print(f"Service failed. {e} - try again later.")
                     while True:
                         policies_attached = input("Do you want to see the attached policies of any users? (y/n):  ").lower()
                         if policies_attached != "y" and policies_attached != "n":
                             print("Invalid option. ")
                         elif policies_attached == "y":
-                            while True:
-                                user_for_list_policies = input("Enter which user you want to see the policies for: ")
-                                if user_for_list_policies not in list_of_users:
-                                    print("Invalid option, user does not exist")
-                                else:
-                                    print(f"listing polices for {user_for_list_policies}...")
-                                    inline_list = []
-                                    inline_policies_attached = users.list_attached_user_policies(
-                                        username=user_for_list_policies, managed=False)
-                                    for i_policy in inline_policies_attached:
-                                        inline_list.append(i_policy)
-                                    if not inline_list:
-                                        print("No inline Policies attached")
-                                    print(f"Inline Policies attached: \n")
-                                    for i_policy in inline_list:
-                                        print(f"- {i_policy} \n")
+                            user_for_list_policies = input("Enter which user you want to see the policies for: ")
+                            if user_for_list_policies not in list_of_users:
+                                print("Invalid option, user does not exist")
+                            else:
+                                print(f"listing polices for {user_for_list_policies}...")
+                                inline_list = []
+                                inline_policies_attached = users.list_attached_user_policies(
+                                    username=user_for_list_policies, managed=False)
+                                for i_policy in inline_policies_attached:
+                                    inline_list.append(i_policy)
+                                if not inline_list:
+                                    print("No inline Policies attached")
+                                print(f"Inline Policies attached: \n")
+                                for i_policy in inline_list:
+                                    print(f"- {i_policy} \n")
 
-                                    managed_policies_attached = users.list_attached_user_policies(
-                                        username=user_for_list_policies, managed=True)
-                                    if not managed_policies_attached:
-                                        print("No managed Policies attached")
-                                    print(f"Managed Policies attached: \n")
-                                    for m_policy in managed_policies_attached:
-                                        print(f"- {m_policy}\n")
-                                    break
+                                managed_policies_attached = users.list_attached_user_policies(
+                                    username=user_for_list_policies, managed=True)
+                                if not managed_policies_attached:
+                                    print("No managed Policies attached")
+                                print(f"Managed Policies attached: \n")
+                                for m_policy in managed_policies_attached:
+                                    print(f"- {m_policy}\n")
+
 
                         elif policies_attached == "n":
                             break
