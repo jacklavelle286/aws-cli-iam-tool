@@ -98,6 +98,7 @@ def main():
                         if policies_attached != "y" and policies_attached != "n":
                             print("Invalid option. ")
                         elif policies_attached == "y":
+                            # edit workflow from here
                             user_for_list_policies = input("Enter which user you want to see the policies for: ")
                             if user_for_list_policies not in list_of_users:
                                 print("Invalid option, user does not exist")
