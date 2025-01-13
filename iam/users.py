@@ -54,17 +54,29 @@ def list_attached_user_policies(username, managed):
         attached_inline_policies = attached_inline_policies_response.get("PolicyNames", [])
         return attached_inline_policies
 
-# start here
-def list_access_keys(username):
-    access_keys = iam_client.list_access_keys(UserName=username)
-    key_ids = [key['AccessKeyId'] for key in access_keys.get("AccessKeyMetadata", [])]
-    return key_ids
 
+def list_access_keys(username):
+    try:
+        access_keys = iam_client.list_access_keys(UserName=username)
+        key_ids = [key['AccessKeyId'] for key in access_keys.get("AccessKeyMetadata", [])]
+        return key_ids
+    except iam_client.list_access_keys.NoSuchEntityException:
+        return f"No Access Keys found."
+    except iam_client.list_access_keys.ServiceFailureException as e:
+        return f"Request failure, try again later: {e}"
+
+# start here
 
 def list_certificate_ids(username):
-    certificates = iam_client.list_signing_certificates(UserName=username)
-    cert_ids = [cert['CertificateId'] for cert in certificates.get('Certificates', [])]
-    return cert_ids
+    try:
+        certificates = iam_client.list_signing_certificates(UserName=username)
+        cert_ids = [cert['CertificateId'] for cert in certificates.get('Certificates', [])]
+        return cert_ids
+    except iam_client.list_signing_certificates.NoSuchEntityException:
+        return f"No certifiates found."
+    except iam_client.list_signing_certificates.ServiceFailureException as e:
+        return f"Request failure, try again later: {e}"
+
 
 def list_public_ssh_keys(username):
     keys = iam_client.list_ssh_public_keys(UserName = username)
