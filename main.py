@@ -74,40 +74,73 @@ def main():
         elif choice == '2':
             print("Building IAM Users.... ")
             while True:
-                users_choice = input("Select 1 to proceed with IAM user creation, 2 to interact with an existing IAM User, 3 to list IAM users or 4 to delete a iam user. Press anything else to return to the main menu: ")
+                users_choice = input("Select 1 to proceed with IAM user creation, 2 to interact with an existing IAM User, 3 to list IAM users or 4 to delete a iam user. Press anything else to return to the main menu: \n")
                 if users_choice not in ['1', '2', '3', '4']:
                     print("Exiting to main menu.. ")
                     break
-                else:
-                    print("Processing choice..")
-                if users_choice == "1":
+                elif users_choice == "1":
                     print("Creating user..")
                 elif users_choice == "2":
                     print("interacting with iam users..")
                     username = input("Enter the name of the IAM user you'd like to work with: ").lower()
                     print(f"You chose {username}")
-                    list_of_users = users.list_iam_users()
-                    if username not in list_of_users:
-                        print("IAM User doesn't exist, try again.")
-                        break
-                    user_choice = input(f"Do you want to: \n(1) List Policies attached to {username} \n(2) Add Polices \n(3) Remove Policies \n(4) Change password \n(5) List current Credentials associated with {username} \n(6) revoke credentials for {username} \n(7) Rotate access keys for user \n(8) Delete {username} \nPress anything else to quit.")
-                    print(user_choice) # main bit to build out
-                elif users_choice == "3":
-                    print("Listing IAM Users..")
-                    list_of_users = users.list_iam_users()
-                    if list_of_users:
-                        print("IAM Users:")
-                        for user in list_of_users:
-                            print(f"- {user}")
-                    else:
-                        print("No IAM users found.")
+                    while True:
+                        list_of_users = users.list_iam_users()
+                        if username not in list_of_users:
+                            print("IAM User doesn't exist, try again.")
+                            print("The following users available in this account are: ")
+                            for user in list_of_users:
+                                print(f"- {user}")
+                            break
+                        else:
+                            users_choice = input(f"\nDo you want to: \n(1) List Policies attached to {username} \n(2) Add Polices \n(3) Remove Policies \n(4) Change password \n(5) List current Credentials associated with {username} \n(6) revoke credentials for {username} \n(7) Rotate access keys for user \n(8) Delete {username} \nPress anything else to quit: \n")
+                            if users_choice not in ['1', '2', '3', '4', '5', '6', '7', '8']:
+                                print("Exiting..")
+                                break
+                            elif users_choice == "1":
+                                print("Listing IAM attached policies..")
+                                list_of_managed_policies = users.list_attached_user_policies(username=username,managed=True)
+                                if not list_of_managed_policies:
+                                    print("\nNo Managed Policies found.\n")
+                                else:
+                                    print("\nList Of managed policies: \n")
+                                    for m_policy in list_of_managed_policies:
+                                        print(f"- {m_policy}")
+                                list_of_inline_policies = users.list_attached_user_policies(username=username, managed=False)
+                                if not list_of_inline_policies:
+                                    print("\nNo inline policies found.\n")
+                                else:
+                                    print("\nList of Inline policies:\n")
+                                    for i_policy in list_of_inline_policies:
+                                        print(f"- {i_policy}")
+
+                            elif users_choice == "2":
+                                print("adding policies")
+
+                            elif users_choice == "3":
+                                print("Removing policies")
+
+                            elif users_choice == "4":
+                                print("Changing password")
+
+                            elif users_choice == "5":
+                                print("listing current credentials")
+
+                            elif users_choice == "6":
+                                print("Revoking Credentials..")
+
+                            elif users_choice == "7":
+                                print("Rotating Keys..")
+
+                            elif users_choice == "8":
+                                print(f"Deleting {username}..")
+
+
 
                 elif users_choice == "4":
                     user_to_delete = input("Enter the name of the user you want to delete: ").lower()
                     users.delete_iam_user(user_to_delete)
 
-                else:
-                    break
         elif choice == "q":
             print("Exiting the programme..")
             exit()

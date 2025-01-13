@@ -45,7 +45,6 @@ def list_attached_user_policies(username, managed):
         except Exception:
             print(f"Error listing policies attached to {username}.")
 
-
         attached_managed_policies = attached_managed_policies_response.get("AttachedPolicies", [])
         return [policy["PolicyName"] for policy in attached_managed_policies]
     else:
