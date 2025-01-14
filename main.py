@@ -1,3 +1,4 @@
+import iam.users
 from iam import iam_policy, users
 from iam import iam_client
 
@@ -84,6 +85,12 @@ def main():
                     print("interacting with iam users..")
                     username = input("Enter the name of the IAM user you'd like to work with: ").lower()
                     print(f"You chose {username}")
+                    current_list_of_users = users.list_iam_users()
+                    if username not in current_list_of_users:
+                        print("Your user does not exist, here is the list of users:")
+                        for user in current_list_of_users:
+                            print(f"- {user}")
+                        break
                     while True:
                         list_of_users = users.list_iam_users()
                         if username not in list_of_users:
@@ -134,6 +141,11 @@ def main():
 
                             elif users_choice == "8":
                                 print(f"Deleting {username}..")
+                                iam.users.delete_iam_user(username)
+                                print("Returning as user is deleted..")
+                                break
+
+
 
 
 
