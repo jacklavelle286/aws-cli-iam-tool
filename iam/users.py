@@ -2,23 +2,6 @@ from . import iam_client
 from iam import iam_policy
 
 
-# TODO
-
-# change it so when with iam users either 1. create new one, or 2. you list the iam users, choose one, then choose what operations you want to do i.e add policies, remove, delete etc etc
-# create iam user
-
-# interact with iam user:
-# list policies
-# add, delete policies
-# change password
-# get access keys
-# revoke access keys
-# assign MFA
-# rotate access keys
-
-
-# add extensive error handling within the functions themselves
-
 
 def list_iam_users():
     try:
@@ -113,14 +96,112 @@ def list_groups_for_user(username):
     except iam_client.list_groups_for_user.ServiceFailureException as e:
         return f"Request failure, try again later: {e}"
 
-# edit the below function to take the following and put into their own function:
 
-# "call delete signing cert function"
-# "call delete ssh publish key function"
-# "call delete service specific cred function"
-# "call deactivate mfa function"
-# "call delete login profile function"
-# "call remove user from group function"
+def delete_user_policy(username, policy_arn):
+    try:
+        iam_client.detach_user_policy(UserName=username, PolicyArn=policy_arn)
+    except iam_client.detach_user_policy.NoSuchEntityException as e:
+        return f"No such entity: {e}"
+    except iam_client.detach_user_policy.LimitExceededException as e:
+        return f"Rate limit succeeded: {e}"
+    except iam_client.detach_user_policy.InvalidInputException as e:
+        return f"Invalid input: {e}"
+        return f"Rate limit succeeded: {e}"
+    except iam_client.detach_user_policy.ServiceFailureException as e:
+        return f"Service failure: {e}"
+
+def delete_access_key(username, access_key_id):
+    try:
+        iam_client.delete_access_key(UserName=username, AccessKeyId=access_key_id)
+    except iam_client.delete_access_key.NoSuchEntityException as e:
+        return f"No such entity: {e}"
+    except iam_client.delete_access_key.LimitExceededException as e:
+        return f"Rate limit exceeded: {e}"
+    except iam_client.delete_access_key.ServiceFailureException as e:
+        return f"Service failure: {e}"
+
+
+def delete_signing_certificate(username, cert):
+    try:
+        iam_client.delete_signing_certificate(UserName=username, CertificateId=cert)
+    except iam_client.delete_signing_certificate.NoSuchEntityException as e:
+        return f"No such entity: {e}"
+    except iam_client.delete_signing_certificate.LimitExceededException as e:
+        return f"Rate limit succeeded: {e}"
+    except iam_client.delete_signing_certificate.ConcurrentModificationException as e:
+        return f"Concurrent modification exception: {e}"
+    except iam_client.delete_signing_certificate.ServiceFailureException as e:
+        return f"Service failure: {e}"
+
+
+def delete_ssh_public_key(username, key_id):
+    try:
+        iam_client.delete_ssh_public_key(UserName=username, SSHPublicKeyId=key_id)
+    except delete_ssh_public_key.NoSuchEntityException as e:
+        return f"No such entity: {e}"
+
+
+def delete_service_specific_creds(username, cred):
+    try:
+        iam_client.delete_service_specific_credential(UserName=username, ServiceSpecificCredentialId=cred)
+    except iam_client.delete_service_specific_credential.NoSuchEntityException as e:
+        return f"No such entity: {e}"
+
+def deactivate_mfa_device(username, serial_id):
+    try:
+        iam_client.deactivate_mfa_device(UserName=username, SerialNumber=id)
+    except iam_client.deactivate_mfa_device.EntityTemporarilyUnmodifiableException as e:
+        return f"Entity temporarily unmodifiable, try again later: {e}"
+    except iam_client.deactivate_mfa_device.NoSuchEntityException as e:
+        return f"No such entity: {e}"
+    except iam_client.deactivate_mfa_device.LimitExceededException as e:
+        return f"Rate limit exceeded: {e}"
+    except iam_client.deactivate_mfa_device.ServiceFailureException as e:
+        return f"Service failure: {e}"
+    except iam_client.deactivate_mfa_device.ConcurrentModificationException as e:
+        return f"Concurrent modification exception: {e}"
+
+def delete_login_profile(username):
+    try:
+        iam_client.delete_login_profile(UserName=username)
+    except iam_client.delete_login_profile.EntityTemporarilyUnmodifiableException as e:
+        return f"Entity temporarily unmodifiable, try again later: {e}"
+    except iam_client.delete_login_profile.NoSuchEntityException as e:
+        return f"No such entity: {e}"
+    except iam_client.delete_login_profile.LimitExceededException as e:
+        return f"Rate limit exceeded: {e}"
+    except iam_client.delete_login_profile.ServiceFailureException as e:
+        return f"Service failure: {e}"
+    except iam_client.delete_login_profile.ConcurrentModificationException as e:
+        return f"Concurrent modification exception: {e}"
+
+
+def remove_user_from_group(username, group):
+    try:
+        iam_client.remove_user_from_group(UserName=username, GroupName=group)
+    except iam_client.remove_user_from_group.NoSuchEntityException as e:
+        return f"No such entity: {e}"
+    except iam_client.remove_user_from_group.LimitExceededException as e:
+        return f"Rate limit succeeded: {e}"
+    except iam_client.remove_user_from_group.ServiceFailureException as e:
+        return f"Service failure: {e}"
+
+
+def delete_user(username):
+    try:
+        iam_client.delete_user(UserName=username)
+    except iam_client.delete_user.LimitExceededException as e:
+        return f"Rate limited exceeded: {e}"
+    except iam_client.delete_user.NoSuchEntityException as e:
+        return f"No such user: {e}"
+    except iam_client.delete_user.DeleteConflictException as e:
+        return f"Delete conflict, make sure everything is detatched before deletion: {e}"
+    except iam_client.delete_user.ConcurrentModificationException as e:
+        return f"Concurrent modification exception: {e}"
+    except iam_client.delete_login_profile.ConcurrentModificationException as e:
+        return f"Service failure: {e}"
+
+
 
 
 def delete_iam_user(username):
@@ -133,52 +214,48 @@ def delete_iam_user(username):
         arn = iam_policy.get_iam_policy_arn(name)
         policy_arns.append(arn)
     for arn in policy_arns:
-        iam_client.detach_user_policy(UserName=username, PolicyArn=arn)
+        delete_user_policy(username=username, policy_arn=arn)
     print("Deleting inline policies...")
     inline_policies = list_attached_user_policies(username=username, managed=False)
     for i_policy in inline_policies:
         print(f"Deleting: {i_policy}")
-        iam_client.delete_user_policy(PolicyName=i_policy,UserName=username)
+        delete_user_policy(username=username, policy_arn=arn)
     print("Deleting access keys...")
     key_list = list_access_keys(username)
     for key in key_list:
         print(f"Deleting: {key}")
-        iam_client.delete_access_key(UserName=username, AccessKeyId=key)
+        delete_access_key(username=username, access_key_id=key)
     print("Deleting certificates..")
     cert_ids = list_certificate_ids(username)
     for cert in cert_ids:
         print(f"Deleting: {cert}")
-        # call delete signing cert function
-        iam_client.delete_signing_certificate(UserName=username, CertificateId=cert)
+        delete_signing_certificate(username=username, cert=cert)
     print("Deleting Public SSH Keys...")
     keys = list_public_ssh_keys(username=username)
     for key in keys:
         print(key)
         print(f"Deleting: {key}")
-        # call delete ssh publish key function
-        iam_client.delete_ssh_public_key(UserName=username, SSHPublicKeyId=key)
+        delete_ssh_public_key(username=username, key_id=key)
     print("Deleting Public Git Credentials...")
     creds = list_service_specific_creds(username)
     for cred in creds:
         print(f"Deleting: {cred}")
-        # call delete service specfic cred function
-        iam_client.delete_service_specific_credential(UserName=username, ServiceSpecificCredentialId=cred)
+        delete_service_specific_creds(username=username, cred=cred)
     print("Deleting MFA Devices...")
     devices_ids = list_mfa_devices(username)
     for ids in devices_ids:
         print(f"Deactivating: {ids}")
         # call deactivate mfa function
-        iam_client.deactivate_mfa_device(UserName=username, SerialNumber=id)
+        deactivate_mfa_device(username=username, serial_id=ids)
     print("Deleting Login Profile...")
-    # call delete login profile function
-    iam_client.delete_login_profile(UserName=username)
+    delete_login_profile(username=username)
     users_groups = list_groups_for_user(username)
     for group in users_groups:
         print(f"Removing user from group: {group}")
         # call remove user from group function
-        iam_client.remove_user_from_group(UserName=username, GroupName=group)
+        remove_user_from_group(username=username, group=group)
     print("Deleting user...")
-    iam_client.delete_user(UserName=username)
+    delete_user(username=username)
     print("User Deleted!")
 
 
