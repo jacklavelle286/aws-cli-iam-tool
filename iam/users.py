@@ -155,7 +155,7 @@ def list_groups_for_user(username):
 def detach_user_policy(username, policy_arn):
     try:
         iam_client.detach_user_policy(UserName=username, PolicyArn=policy_arn)
-        return True
+        return f"successfully detached {policy_arn}."
     except iam_client.exceptions.NoSuchEntityException as e:
         print(f"No such entity: {e}")
         return None
@@ -291,8 +291,9 @@ def delete_user(username):
 
 
 
+# delete policies:
 
-def delete_iam_user(username):
+def delete_policies(username):
     print("Deleting attached policies...\n")
     managed_policies = list_attached_managed_user_policies(username=username)
     if managed_policies is None:
@@ -315,6 +316,10 @@ def delete_iam_user(username):
         for i_policy in i_policies:
             delete_user_policy(username=username, policy_name=i_policy)
 
+
+def delete_iam_user(username):
+    print("Deleting attached policies...\n")
+    delete_policies(username=username)
     print("Deleting access keys...\n")
     key_list = list_access_keys(username)
     if key_list is None:

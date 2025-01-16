@@ -163,26 +163,39 @@ def delete_policy_remotely(new_policy):
         print(f"An error occurred while deleting the policy '{new_policy}': {e}")
 
 
-def detach_entities(response, policy_arn):
-    """
-    Detach IAM policy from users, groups, and roles.
-    """
+def detach_policy(username, target_type, policy_arn):
+    if target_type == "user".lower():
+        user_detach = iam_client.detach_user_policy(UserName=username, PolicyArn=policy_arn)
+        return user_detach
+    elif target_type == "group".lower():
+        group_detach = iam_client.detach_group_policy(UserName=username, PolicyArn=policy_arn)
+        return group_detach
+    elif target_type == "role".lower():
+        role_detach = iam_client.detach_role_policy(UserName=username, PolicyArn=policy_arn)
+        return role_detach
 
 
-    # Detach from users
-    for user in response.get("PolicyUsers", []):
-        iam_client.detach_user_policy(UserName=user["UserName"], PolicyArn=policy_arn)
-        print(f"Detached policy from user: {user['UserName']}")
+def detach_entities(response, policy_arn, attach_type):
 
-    # Detach from roles
-    for role in response.get("PolicyRoles", []):
-        iam_client.detach_role_policy(RoleName=role["RoleName"], PolicyArn=policy_arn)
-        print(f"Detached policy from role: {role['RoleName']}")
+    if attach_type == "users":
+        # Detach from users
+        for user in response.get("PolicyUsers", []):
+            iam_client.detach_user_policy(UserName=user["UserName"], PolicyArn=policy_arn)
+            print(f"Detached policy from user: {user['UserName']}")
 
-    # Detach from groups
-    for group in response.get("PolicyGroups", []):
-        iam_client.detach_group_policy(GroupName=group["GroupName"], PolicyArn=policy_arn)
-        print(f"Detached policy from group: {group['GroupName']}")
+    elif attach_type == "roles":
+        # Detach from roles
+        for role in response.get("PolicyRoles", []):
+            iam_client.detach_role_policy(RoleName=role["RoleName"], PolicyArn=policy_arn)
+            print(f"Detached policy from role: {role['RoleName']}")
+
+    elif attach_type == "groups":
+        # Detach from groups
+        for group in response.get("PolicyGroups", []):
+            iam_client.detach_group_policy(GroupName=group["GroupName"], PolicyArn=policy_arn)
+            print(f"Detached policy from group: {group['GroupName']}")
+    else:
+        return "invalid option. "
 
 
 def delete_policy_file(new_policy):

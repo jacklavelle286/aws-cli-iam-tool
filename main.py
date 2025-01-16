@@ -90,7 +90,6 @@ def main():
                         print("Your user does not exist, here is the list of users:")
                         for user in current_list_of_users:
                             print(f"- {user}")
-                        break
                     while True:
                         list_of_users = users.list_iam_users()
                         if username not in list_of_users:
@@ -106,14 +105,14 @@ def main():
                                 break
                             elif users_choice == "1":
                                 print("Listing IAM attached policies..")
-                                list_of_managed_policies = users.list_attached_user_policies(username=username,managed=True)
+                                list_of_managed_policies = users.list_attached_managed_user_policies(username=username)
                                 if not list_of_managed_policies:
                                     print("\nNo Managed Policies found.\n")
                                 else:
                                     print("\nList Of managed policies: \n")
                                     for m_policy in list_of_managed_policies:
                                         print(f"- {m_policy}")
-                                list_of_inline_policies = users.list_attached_user_policies(username=username, managed=False)
+                                list_of_inline_policies = users.list_attached_inline_user_policies(username=username)
                                 if not list_of_inline_policies:
                                     print("\nNo inline policies found.\n")
                                 else:
@@ -130,7 +129,7 @@ def main():
                                 if attach_choice.lower() == "attach":
                                     arn = input("Enter a valid ARN: ")
                                     valid_arns = iam_policy.list_policies_in_aws(arn=True, policy_type='All')
-                                    print(f"Checking against all {len(valid_arns)} policies...")
+                                    print(f"Checking against all {len(valid_arns)} policies in your account to see if it exists...")
                                     if arn not in valid_arns:
                                         print("Invalid ARN: doesn't exist within your account.")
                                     else:
@@ -149,6 +148,18 @@ def main():
 
                             elif users_choice == "3":
                                 print("Removing policies")
+                                all_policies = input("If you want to delete all policies type 'all' or type 'arn' to input a specific arn: ")
+                                if all_policies.lower() == "all":
+                                    users.delete_policies(username=username)
+                                elif all_policies.lower() == "arn":
+                                    specific_arn = input("List a specific policy arn: ")
+                                    list_of_policies_attached = users.list_attached_managed_user_policies(username) # returns non arns
+                                    for policy in list_of_policies_attached:
+                                        policy_arn = iam_policy.get_iam_policy_arn(new_policy=policy)
+                                        if policy_arn == specific_arn:
+                                            detach_result = users.detach_user_policy(username=username, policy_arn=policy_arn)
+                                            print(detach_result)
+
 
                             elif users_choice == "4":
                                 print("Changing password")
