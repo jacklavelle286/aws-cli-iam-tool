@@ -139,10 +139,11 @@ def main():
                             elif users_choice == "7":
                                 print("Rotating Keys..")
 
+
                             elif users_choice == "8":
-                                print(f"Deleting {username}..")
-                                iam.users.delete_iam_user(username)
-                                print("Returning as user is deleted..")
+                                print(f"Deleting {username}...\n")
+                                iam_user_delete_response = iam.users.delete_iam_user(username)
+                                print(iam_user_delete_response)
                                 break
 
 

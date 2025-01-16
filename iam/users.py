@@ -238,6 +238,7 @@ def delete_login_profile(username):
 def remove_user_from_group(username, group):
     try:
         iam_client.remove_user_from_group(UserName=username, GroupName=group)
+        return "User removed from groups successfully. "
     except iam_client.exceptions.NoSuchEntityException as e:
         print(f"No such entity: {e}")
         return None
@@ -251,6 +252,7 @@ def remove_user_from_group(username, group):
 def delete_user(username):
     try:
         iam_client.delete_user(UserName=username)
+        return f"Succesfully deleted {username}"
     except iam_client.exceptions.LimitExceededException as e:
         print(f"Rate limited exceeded: {e}")
         return None
@@ -258,7 +260,7 @@ def delete_user(username):
         print(f"No such user: {e}")
         return None
     except iam_client.exceptions.DeleteConflictException as e:
-        print(f"Delete conflict, make sure everything is detatched before deletion: {e}")
+        print(f"Delete conflict, make sure everything is detached before deletion: {e}")
         return None
     except iam_client.exceptions.ConcurrentModificationException as e:
         print(f"Concurrent modification exception: {e}")
@@ -271,127 +273,105 @@ def delete_user(username):
 
 
 def delete_iam_user(username):
-    print("Deleting attached policies...")
+    print("Deleting attached policies...\n")
     managed_policies = list_attached_managed_user_policies(username=username)
     if managed_policies is None:
-        print("Error retrieving managed policies. Skipping.")
+        print("Error retrieving managed policies. Skipping.\n")
     elif not managed_policies:
-        print("No managed policies attached.")
+        print("No managed policies attached.\n")
     else:
         for policy in managed_policies:
-            print(f"Detaching managed policies: {policy}")
+            print(f"Detaching managed policies: {policy}\n")
             arn = iam_policy.get_iam_policy_arn(policy)
-            detach_response = detach_user_policy(username=username, policy_arn=arn)
-            if detach_response is None:
-                print("Error detaching policy. ")
-            elif not detach_response:
-                print("No Managed Policies found. ")
-            else:
-                managed_policies = list_attached_managed_user_policies(username=username)
-    if managed_policies is None:
-        print("Error retrieving managed policies. ")
-    elif not managed_policies:
-        print("No Managed Policies attached. ")
-    else:
-        for policy in managed_policies:
-            print(f"Detaching managed policies: {policy}")
-        policy_arns = []
-        for name in managed_policies:
-            arn = iam_policy.get_iam_policy_arn(name)
-            policy_arns.append(arn)
-        for arn in policy_arns:
-            detach_response = detach_user_policy(username=username, policy_arn=arn)
-            if detach_response is None:
-                print("Error detaching managed policies.")
-    print("Deleting inline policies...")
+            detach_user_policy(username=username, policy_arn=arn)
+
+    print("Deleting inline policies...\n")
     i_policies = list_attached_inline_user_policies(username=username)
     if i_policies is None:
-        print("Error listing attached Inline policies. ")
+        print("Error listing attached Inline policies. \n")
     elif not i_policies:
-        print("No Inline policies attached. ")
+        print("No Inline policies attached. \n")
     else:
         for i_policy in i_policies:
             delete_user_policy(username=username, policy_name=i_policy)
-    print("Deleting access keys...")
+
+    print("Deleting access keys...\n")
     key_list = list_access_keys(username)
     if key_list is None:
-        print("Error listing keys. ")
+        print("Error listing keys. \n")
     elif not key_list:
-        print("Not Access keys found. ")
+        print("No Access keys found. \n")
     else:
         for key in key_list:
-            print(f"Deleting: {key}")
+            print(f"Deleting: {key}\n")
             delete_access_key(username=username, access_key_id=key)
-    print("Deleting certificates..")
+
+    print("Deleting certificates...\n")
     cert_ids = list_certificate_ids(username)
     if cert_ids is None:
-        print("Error listing Cert IDs.")
+        print("Error listing Cert IDs.\n")
     elif not cert_ids:
-        print("No Certificiates found.")
+        print("No Certificates found.\n")
     else:
         for cert in cert_ids:
-            print(f"Deleting: {cert}")
+            print(f"Deleting: {cert}\n")
             delete_signing_certificate(username=username, cert=cert)
-    print("Deleting Public SSH Keys...")
+
+    print("Deleting SSH keys...\n")
     keys = list_public_ssh_keys(username=username)
     if keys is None:
-        print("Error listing keys. ")
+        print("Error listing SSH keys.\n")
     elif not keys:
-        print("No Publish SSH keys found. ")
+        print("No SSH keys found.\n")
     else:
         for key in keys:
-            print(key)
-            print(f"Deleting: {key}")
-            delete_key_response = delete_ssh_public_key(username=username, key_id=key)
-            if delete_key_response is None:
-                print("Error deleting public SSH keys. ")
+            print(f"Deleting: {key}\n")
+            delete_ssh_public_key(username=username, key_id=key)
 
-    print("Deleting Public Git Credentials...")
+    print("Deleting service-specific credentials...\n")
     creds = list_service_specific_creds(username)
     if creds is None:
-        print("Error listing public git credentials. ")
+        print("Error listing service-specific credentials.\n")
     elif not creds:
-        print("no public git credentials found. ")
+        print("No service-specific credentials found.\n")
     else:
         for cred in creds:
-            print(f"Deleting: {cred}")
-            delete_service_response = delete_service_specific_creds(username=username, cred=cred)
-            if delete_service_response is None:
-                print("Error deleting public Git credentials. ")
-    print("Deleting MFA Devices...")
+            print(f"Deleting: {cred}\n")
+            delete_service_specific_creds(username=username, cred=cred)
+
+    print("Deleting MFA devices...\n")
     devices_ids = list_mfa_devices(username)
     if devices_ids is None:
-        print("Error listing MFA devices. ")
+        print("Error listing MFA devices.\n")
     elif not devices_ids:
-        print("No MFA Devices found. ")
+        print("No MFA devices found.\n")
     else:
         for serial_id in devices_ids:
-            print(id)
-            print(f"Deactivating: {serial_id}")
-            deactivate_mfa_device_response = deactivate_mfa_device(username=username, serial_id=serial_id)
-            if deactivate_mfa_device_response is None:
-                print("Error Deactivating MFA. ")
-    print("Deleting Login Profile...")
+            print(f"Deactivating: {serial_id}\n")
+            deactivate_mfa_device(username=username, serial_id=serial_id)
+
+    print("Deleting login profile...\n")
     delete_login_profile_response = delete_login_profile(username=username)
     if delete_login_profile_response is None:
-        print("Error deleting login profile. ")
+        print("Error deleting login profile.\n")
+
+    print("Removing user from groups...\n")
     users_groups = list_groups_for_user(username)
     if users_groups is None:
-        print(f"Error listing {username}'s groups. ")
+        print(f"Error listing {username}'s groups.\n")
     elif not users_groups:
-        print("Not user groups found. ")
+        print("No groups found.\n")
     else:
         for group in users_groups:
-            print(f"Removing user from group: {group}")
-            remove_user_from_group_choice = remove_user_from_group(username=username, group=group)
-            if remove_user_from_group_choice is None:
-                print(f"Error removing {username} from groups. ")
-        print("Deleting user...")
-        delete_iam_user_response = delete_iam_user(username=username)
-        if delete_iam_user_response is None:
-            print("Error deleting IAM user.")
-        else:
-            print("User Deleted!")
+            print(f"Removing user from group: {group}\n")
+            remove_user_from_group(username=username, group=group)
+
+    print("Deleting IAM user...\n")
+    delete_user_response = delete_user(username=username)
+    if delete_user_response:
+        return f"Successfully deleted IAM user: {username}\n"
+    else:
+        return f"Failed to delete IAM user: {username}. Ensure all dependencies are removed.\n"
 
 
 
