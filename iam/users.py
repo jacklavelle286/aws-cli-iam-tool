@@ -2,6 +2,26 @@ from . import iam_client
 from iam import iam_policy
 
 
+def attach_user_policy(username, policy_arn):
+    try:
+        iam_client.attach_user_policy(UserName=username, PolicyArn=policy_arn)
+        return f"Succesfully attached policy: {policy_arn}"
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No Such entity: {e}")
+        return None
+    except iam_client.exceptions.LimitExceededException as e:
+        print(f"Rate Limit exceeded: {e}")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failed: {e}")
+        return None
+    except iam_client.exceptions.InvalidInputException as e:
+        print(f"Invalid input exception: {e}")
+        return None
+    except iam_client.exceptions.PolicyNotAttachableException as e:
+        print(f"Policy not attachable: {e}")
+        return None
+
 
 def list_iam_users():
     try:
@@ -135,7 +155,7 @@ def list_groups_for_user(username):
 def detach_user_policy(username, policy_arn):
     try:
         iam_client.detach_user_policy(UserName=username, PolicyArn=policy_arn)
-        return True
+        return f"successfully detached {policy_arn}."
     except iam_client.exceptions.NoSuchEntityException as e:
         print(f"No such entity: {e}")
         return None
@@ -271,8 +291,9 @@ def delete_user(username):
 
 
 
+# delete policies:
 
-def delete_iam_user(username):
+def delete_policies(username):
     print("Deleting attached policies...\n")
     managed_policies = list_attached_managed_user_policies(username=username)
     if managed_policies is None:
@@ -295,6 +316,10 @@ def delete_iam_user(username):
         for i_policy in i_policies:
             delete_user_policy(username=username, policy_name=i_policy)
 
+
+def delete_iam_user(username):
+    print("Deleting attached policies...\n")
+    delete_policies(username=username)
     print("Deleting access keys...\n")
     key_list = list_access_keys(username)
     if key_list is None:
