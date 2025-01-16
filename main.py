@@ -119,6 +119,8 @@ def main():
                                     print("\nList of Inline policies:\n")
                                     for i_policy in list_of_inline_policies:
                                         print(f"- {i_policy}")
+                                inspect_policy = input("Do you want to inspect a policy? enter a name and you can view the policy: ")
+                                # add logic to inspect policy
 
 
 
@@ -145,6 +147,25 @@ def main():
                                         else:
                                             attach_attempt = users.attach_user_policy(username=username, policy_arn=arn)
                                             print(attach_attempt)
+                                elif attach_choice.lower() == "create":
+                                    print("Creating new policy... ")
+                                    iam_policy.user_inputs = iam_policy.get_user_input_policy()
+                                    iam_policy.policy_file_name = iam_policy.create_iam_policy_file(
+                                        iam_policy.user_inputs)
+
+                                    # Updated block for attaching the policy
+                                    created_policy = iam_policy.create_policy(iam_policy.policy_file_name)
+                                    if created_policy:
+                                        policy_arn = created_policy  # ARN returned by create_policy
+                                        print(f"Attaching {policy_arn}...")
+                                        attach_response = users.attach_user_policy(username=username,
+                                                                                   policy_arn=policy_arn)
+                                        print(attach_response)
+                                    else:
+                                        print("Policy creation failed; cannot attach.")
+
+
+
 
                             elif users_choice == "3":
                                 print("Removing policies")

@@ -46,8 +46,6 @@ def create_iam_policy_file(input_data):
         ]
     }
 
-    print(type(policy_dict))
-    print(policy_dict)
     # Ask user if they want to add more statement blocks
     add_more = input("Do you want to add another statement block? (yes/no): ").strip().lower()
     while add_more == "yes":
@@ -79,33 +77,20 @@ def create_iam_policy_file(input_data):
 
 
 # IAM Policy Creation Functionality
-def create_policy(new_policy):
-    """
-    Create an IAM policy in AWS using the generated JSON policy file.
-    """
-
-    policy_name = os.path.basename(new_policy).split(".")[0]
-
-    with open(new_policy, mode="r") as policy_file:
-        policy_contents = policy_file.read()
-
+def create_policy(policy_file_name):
     try:
+        with open(policy_file_name, 'r') as policy_file:
+            policy_document = policy_file.read()
         response = iam_client.create_policy(
-            PolicyName=policy_name,
-            PolicyDocument=policy_contents
+            PolicyName=os.path.basename(policy_file_name).split(".")[0],
+            PolicyDocument=policy_document
         )
-        arn = response["Policy"]["Arn"]
-        print(f"Policy created successfully!: {arn}")
-    except iam_client.exceptions.EntityAlreadyExistsException:
-        print(f"Policy called '{policy_name}' already exists in AWS.")
-        handle_existing_policy(policy_name, new_policy)
-    except iam_client.exceptions.MalformedPolicyDocumentException as e:
-        print(f"Malformed policy document for '{policy_name}': {e}")
-        print("Deleting locally made policy..")
-        delete_policy_file(new_policy=new_policy)
+        print(f"Policy created successfully!: {response['Policy']['Arn']}")
+        return response['Policy']['Arn']
     except Exception as e:
-        print(f"Error creating policy '{policy_name}': {e}")
-        delete_policy_file(new_policy=new_policy)
+        print(f"Error creating policy: {e}")
+        return None
+
 
 
 # Helper Functions for IAM Policy Management
