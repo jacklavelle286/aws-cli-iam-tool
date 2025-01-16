@@ -1,113 +1,377 @@
-# from . import json
-# from . import iam_client
-# from . import os
-
-import boto3
-import json
-import os
-
+from . import iam_client
 from iam import iam_policy
 
-iam_client = boto3.client("iam")
-
-
-
-# TODO
-
-# change it so when with iam users either 1. create new one, or 2. you list the iam users, choose one, then choose what operations you want to do i.e add policies, remove, delete etc etc
-# create iam user
-# delete iam user
-
-# interact with iam user:
-# list policies
-# add, delete policies
-# change password
-# get access keys
-# revoke access keys
-# assign MFA
-# rotate access keys
 
 
 def list_iam_users():
+    try:
         response = iam_client.list_users()
         users = response.get("Users", [])
-        user_names = [name['UserName'] for name in users]
-        return user_names
+        return [user['UserName'] for user in users]
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failed: {e}. Try again later.")
+        return []
+    except Exception as e:
+        print(f"Service failed. {e} - try again later.")
+        return []
 
 
-
-# list attached polices for users (this will be reused)
-
-def list_attached_user_policies(username, managed):
-    if managed:
-        attached_managed_policies_response = iam_client.list_attached_user_policies(
-            UserName=username
-        )
+def list_attached_managed_user_policies(username):
+    try:
+        attached_managed_policies_response = iam_client.list_attached_user_policies(UserName=username)
         attached_managed_policies = attached_managed_policies_response.get("AttachedPolicies", [])
         return [policy["PolicyName"] for policy in attached_managed_policies]
-    else:
-        attached_inline_policies_response = iam_client.list_user_policies(
-            UserName=username
-        )
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No policies attached to {username}: {e}")
+        return None
+    except iam_client.exceptions.InvalidInputException as e:
+        print(f"Invalid input: {e}")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failure, try again later: {e}")
+        return None
+
+
+def list_attached_inline_user_policies(username):
+    try:
+        attached_inline_policies_response = iam_client.list_user_policies(UserName=username)
         attached_inline_policies = attached_inline_policies_response.get("PolicyNames", [])
         return attached_inline_policies
 
-def list_access_keys(username):
-    access_keys = iam_client.list_access_keys(UserName=username)
-    key_ids = [key['AccessKeyId'] for key in access_keys.get("AccessKeyMetadata", [])]
-    return key_ids
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No policies attached to {username}: {e}")
+        return None
+    except iam_client.exceptions.InvalidInputException as e:
+        print(f"Invalid input: {e}")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failure, try again later: {e}")
+        return None
 
+
+def delete_user_policy(username, policy_name):
+    try:
+        iam_client.delete_user_policy(UserName=username, PolicyName=policy_name)
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No Such entity: {e}")
+        return None
+    except iam_client.exceptions.LimitExceededException as e:
+        print(f"Rate Limit exceeded: {e}")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failed: {e}")
+        return None
+
+def list_access_keys(username):
+    try:
+        access_keys = iam_client.list_access_keys(UserName=username)
+        key_ids = [key['AccessKeyId'] for key in access_keys.get("AccessKeyMetadata", [])]
+        return key_ids
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No Access Keys found: {e}")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Request failure, try again later: {e}")
+        return None
 
 
 def list_certificate_ids(username):
-    certificates = iam_client.list_signing_certificates(UserName=username)
-    cert_ids = [cert['CertificateId'] for cert in certificates.get('Certificates', [])]
-    return cert_ids
+    try:
+        certificates = iam_client.list_signing_certificates(UserName=username)
+        cert_ids = [cert['CertificateId'] for cert in certificates.get('Certificates', [])]
+        return cert_ids
+    except iam_client.exceptions.NoSuchEntityException:
+        print(f"No certificates found.")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Request failure, try again later: {e}")
+        return None
+
+
+def list_public_ssh_keys(username):
+    try:
+        keys = iam_client.list_ssh_public_keys(UserName = username)
+        key_ids = [key['SSHPublicKeyId'] for key in keys.get('SSHPublicKeys', [])]
+        return key_ids
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No publish SSH keys found: {e}")
+        return None
+
+def list_service_specific_creds(username):
+    try:
+        creds = iam_client.list_service_specific_credentials(UserName = username)
+        cred_ids = [cred['ServiceSpecificCredentialId'] for cred in creds.get('ServiceSpecificCredentials', [])]
+        return cred_ids
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No credentials found: {e}")
+        return None
+    except iam_client.exceptions.ServiceNotSupportedException as e:
+        print(f"Unsupported service: {e}")
+        return None
+
+
+
+def list_mfa_devices(username):
+    try:
+        devices = iam_client.list_mfa_devices(UserName=username)
+        device_ids = [device['SerialNumber'] for device in devices.get('MFADevices', [])]
+        return device_ids
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No MFA devices found: {e}")
+        return None
+
+def list_groups_for_user(username):
+    try:
+        groups = iam_client.list_groups_for_user(UserName=username)
+        return [group['GroupName'] for group in groups.get("Groups", [])]
+    except iam_client.exceptions.NoSuchEntityException:
+        print(f"No groups found.")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Request failure, try again later: {e}")
+        return None
+
+
+def detach_user_policy(username, policy_arn):
+    try:
+        iam_client.detach_user_policy(UserName=username, PolicyArn=policy_arn)
+        return True
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No such entity: {e}")
+        return None
+    except iam_client.exceptions.LimitExceededException as e:
+        print(f"Rate limit succeeded: {e}")
+        return None
+    except iam_client.exceptions.InvalidInputException as e:
+        print(f"Invalid input: {e}")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failure: {e}")
+        return None
+
+def delete_access_key(username, access_key_id):
+    try:
+        iam_client.delete_access_key(UserName=username, AccessKeyId=access_key_id)
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No such entity: {e}")
+        return None
+    except iam_client.exceptions.LimitExceededException as e:
+        print(f"Rate limit exceeded: {e}")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failure: {e}")
+        return None
+
+
+def delete_signing_certificate(username, cert):
+    try:
+        iam_client.delete_signing_certificate(UserName=username, CertificateId=cert)
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No such entity: {e}")
+        return None
+    except iam_client.exceptions.LimitExceededException as e:
+        print(f"Rate limit succeeded: {e}")
+        return None
+    except iam_client.exceptions.ConcurrentModificationException as e:
+        print(f"Concurrent modification exception: {e}")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failure: {e}")
+        return None
+
+
+def delete_ssh_public_key(username, key_id):
+    try:
+        iam_client.delete_ssh_public_key(UserName=username, SSHPublicKeyId=key_id)
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No such entity: {e}")
+        return None
+
+
+def delete_service_specific_creds(username, cred):
+    try:
+        iam_client.delete_service_specific_credential(UserName=username, ServiceSpecificCredentialId=cred)
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No such entity: {e}")
+        return None
+
+def deactivate_mfa_device(username, serial_id):
+    try:
+        iam_client.deactivate_mfa_device(UserName=username, SerialNumber=serial_id)
+    except iam_client.exceptions.EntityTemporarilyUnmodifiableException as e:
+        print(f"Entity temporarily unmodifiable, try again later: {e}")
+        return None
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No such entity: {e}")
+        return None
+    except iam_client.exceptions.LimitExceededException as e:
+        print(f"Rate limit exceeded: {e}")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failure: {e}")
+        return None
+    except iam_client.exceptions.ConcurrentModificationException as e:
+        print(f"Concurrent modification exception: {e}")
+        return None
+
+def delete_login_profile(username):
+    try:
+        iam_client.delete_login_profile(UserName=username)
+        return "Login profile deleted successfully."
+    except iam_client.exceptions.NoSuchEntityException:
+        return "No login profile found for user."
+    except iam_client.exceptions.EntityTemporarilyUnmodifiableException as e:
+        print(f"Entity temporarily unmodifiable, try again later: {e}")
+        return None
+    except iam_client.exceptions.LimitExceededException as e:
+        print(f"Rate limit exceeded: {e}")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failure: {e}")
+        return None
+    except iam_client.exceptions.ConcurrentModificationException as e:
+        print(f"Concurrent modification exception: {e}")
+        return None
+
+
+
+def remove_user_from_group(username, group):
+    try:
+        iam_client.remove_user_from_group(UserName=username, GroupName=group)
+        return "User removed from groups successfully. "
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No such entity: {e}")
+        return None
+    except iam_client.exceptions.LimitExceededException as e:
+        print(f"Rate limit succeeded: {e}")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failure: {e}")
+        return None
+
+def delete_user(username):
+    try:
+        iam_client.delete_user(UserName=username)
+        return f"Succesfully deleted {username}"
+    except iam_client.exceptions.LimitExceededException as e:
+        print(f"Rate limited exceeded: {e}")
+        return None
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No such user: {e}")
+        return None
+    except iam_client.exceptions.DeleteConflictException as e:
+        print(f"Delete conflict, make sure everything is detached before deletion: {e}")
+        return None
+    except iam_client.exceptions.ConcurrentModificationException as e:
+        print(f"Concurrent modification exception: {e}")
+        return None
+    except iam_client.exceptions.ConcurrentModificationException as e:
+        print(f"Service failure: {e}")
+        return None
+
 
 
 
 def delete_iam_user(username):
-    # list all attached policies
-    print("Deleting attached policies...")
-    policies = list_attached_user_policies(username=username, managed=True)
-    for policy in policies:
-        print(policy)
-    # get arn for each policy
-    policy_arns = []
-    for name in policies:
-        arn = iam_policy.get_iam_policy_arn(name)
-        policy_arns.append(arn)
-    # detach user policies
+    print("Deleting attached policies...\n")
+    managed_policies = list_attached_managed_user_policies(username=username)
+    if managed_policies is None:
+        print("Error retrieving managed policies. Skipping.\n")
+    elif not managed_policies:
+        print("No managed policies attached.\n")
+    else:
+        for policy in managed_policies:
+            print(f"Detaching managed policies: {policy}\n")
+            arn = iam_policy.get_iam_policy_arn(policy)
+            detach_user_policy(username=username, policy_arn=arn)
 
-    for arn in policy_arns:
-        iam_client.detach_user_policy(UserName=username, PolicyArn=arn)
-    # detach Inline policies(DeleteUserPolicy)
-    # get inline policies:
-    inline_policies = list_attached_user_policies(username=username, managed=False)
-    for i_policy in inline_policies:
-        print(i_policy)
-        iam_client.delete_user_policy(PolicyName=i_policy,UserName=username)
-    print("Deleting access keys...")
-    # Access keys(DeleteAccessKey)
-    #list access keys
+    print("Deleting inline policies...\n")
+    i_policies = list_attached_inline_user_policies(username=username)
+    if i_policies is None:
+        print("Error listing attached Inline policies. \n")
+    elif not i_policies:
+        print("No Inline policies attached. \n")
+    else:
+        for i_policy in i_policies:
+            delete_user_policy(username=username, policy_name=i_policy)
+
+    print("Deleting access keys...\n")
     key_list = list_access_keys(username)
-    for key in key_list:
-        print(key)
-        iam_client.delete_access_key(UserName=username, AccessKeyId=key)
-    print("Deleting certificates..")
-    # certificate(DeleteSigningCertificate)
+    if key_list is None:
+        print("Error listing keys. \n")
+    elif not key_list:
+        print("No Access keys found. \n")
+    else:
+        for key in key_list:
+            print(f"Deleting: {key}\n")
+            delete_access_key(username=username, access_key_id=key)
+
+    print("Deleting certificates...\n")
     cert_ids = list_certificate_ids(username)
-    for cert in cert_ids:
-        print(cert)
-        iam_client.delete_signing_certificate(UserName=username, CertificateId=cert)
-    # SSH publickey(DeleteSSHPublicKey)
-    # Git credentials(DeleteServiceSpecificCredential)
-    # Multi - factor authentication(MFA)device(DeactivateMFADevice, DeleteVirtualMFADevice)
-    # Password(DeleteLoginProfile)
-    #iam_client.delete_login_profile(UserName=username)
-    # Inline policies(DeleteUserPolicy)
-    # Group emberships(RemoveUserFromGroup)
-    # delete user:
-    iam_client.delete_user
+    if cert_ids is None:
+        print("Error listing Cert IDs.\n")
+    elif not cert_ids:
+        print("No Certificates found.\n")
+    else:
+        for cert in cert_ids:
+            print(f"Deleting: {cert}\n")
+            delete_signing_certificate(username=username, cert=cert)
+
+    print("Deleting SSH keys...\n")
+    keys = list_public_ssh_keys(username=username)
+    if keys is None:
+        print("Error listing SSH keys.\n")
+    elif not keys:
+        print("No SSH keys found.\n")
+    else:
+        for key in keys:
+            print(f"Deleting: {key}\n")
+            delete_ssh_public_key(username=username, key_id=key)
+
+    print("Deleting service-specific credentials...\n")
+    creds = list_service_specific_creds(username)
+    if creds is None:
+        print("Error listing service-specific credentials.\n")
+    elif not creds:
+        print("No service-specific credentials found.\n")
+    else:
+        for cred in creds:
+            print(f"Deleting: {cred}\n")
+            delete_service_specific_creds(username=username, cred=cred)
+
+    print("Deleting MFA devices...\n")
+    devices_ids = list_mfa_devices(username)
+    if devices_ids is None:
+        print("Error listing MFA devices.\n")
+    elif not devices_ids:
+        print("No MFA devices found.\n")
+    else:
+        for serial_id in devices_ids:
+            print(f"Deactivating: {serial_id}\n")
+            deactivate_mfa_device(username=username, serial_id=serial_id)
+
+    print("Deleting login profile...\n")
+    delete_login_profile_response = delete_login_profile(username=username)
+    if delete_login_profile_response is None:
+        print("Error deleting login profile.\n")
+
+    print("Removing user from groups...\n")
+    users_groups = list_groups_for_user(username)
+    if users_groups is None:
+        print(f"Error listing {username}'s groups.\n")
+    elif not users_groups:
+        print("No groups found.\n")
+    else:
+        for group in users_groups:
+            print(f"Removing user from group: {group}\n")
+            remove_user_from_group(username=username, group=group)
+
+    print("Deleting IAM user...\n")
+    delete_user_response = delete_user(username=username)
+    if delete_user_response:
+        return f"Successfully deleted IAM user: {username}\n"
+    else:
+        return f"Failed to delete IAM user: {username}. Ensure all dependencies are removed.\n"
+
 
 

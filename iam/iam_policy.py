@@ -101,7 +101,8 @@ def create_policy(new_policy):
         handle_existing_policy(policy_name, new_policy)
     except iam_client.exceptions.MalformedPolicyDocumentException as e:
         print(f"Malformed policy document for '{policy_name}': {e}")
-        #delete_policy_file(new_policy=new_policy)
+        print("Deleting locally made policy..")
+        delete_policy_file(new_policy=new_policy)
     except Exception as e:
         print(f"Error creating policy '{policy_name}': {e}")
         delete_policy_file(new_policy=new_policy)
