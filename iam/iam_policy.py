@@ -224,3 +224,14 @@ def list_policies_in_aws():
     policies = response.get("Policies", [])
     policy_names = [policy['PolicyName'] for policy in policies]
     return policy_names
+
+
+def list_policies_in_aws(arn, policy_type):
+    all_policies = []
+    paginator = iam_client.get_paginator('list_policies')
+    for page in paginator.paginate(Scope=policy_type, OnlyAttached=False, PolicyUsageFilter='PermissionsPolicy'):
+        all_policies.extend(page.get("Policies", []))
+    if arn:
+        return [policy['Arn'] for policy in all_policies]
+    else:
+        return [policy['PolicyName'] for policy in all_policies]

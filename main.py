@@ -55,11 +55,11 @@ def main():
                         deletion_choice = input("Which policy do you want to delete within AWS? Press 'l' to list all policies customer managed policies in AWS: ")
                         if deletion_choice == "l":
                             print("listing policies in AWS...")
-                            policy_list = iam_policy.list_policies_in_aws()
+                            policy_list = iam_policy.list_policies_in_aws(arn=False, policy_type='Local')
                             for item in policy_list:
                                 print(item)
                         else:
-                            policy_list = iam_policy.list_policies_in_aws()
+                            policy_list = iam_policy.list_policies_in_aws(arn=False, policy_type='Local')
                             if policy_choice not in policy_list:
                                 print("policy is not found in AWS. ")
                                 break
@@ -83,7 +83,7 @@ def main():
                     print("Creating user..")
                 elif users_choice == "2":
                     print("interacting with iam users..")
-                    username = input("Enter the name of the IAM user you'd like to work with: ").lower()
+                    username = input("Enter the name of the IAM user you'd like to work with: ")
                     print(f"You chose {username}")
                     current_list_of_users = users.list_iam_users()
                     if username not in current_list_of_users:
@@ -121,8 +121,31 @@ def main():
                                     for i_policy in list_of_inline_policies:
                                         print(f"- {i_policy}")
 
+
+
                             elif users_choice == "2":
-                                print("adding policies")
+                                print("Adding policies")
+                                attach_choice = input(
+                                    "Enter 'attach' to specify a valid ARN, or type 'create' to create a new policy: ")
+                                if attach_choice.lower() == "attach":
+                                    arn = input("Enter a valid ARN: ")
+                                    valid_arns = iam_policy.list_policies_in_aws(arn=True, policy_type='All')
+                                    print(f"Checking against all {len(valid_arns)} policies...")
+                                    if arn not in valid_arns:
+                                        print("Invalid ARN: doesn't exist within your account.")
+                                    else:
+                                        is_attached_already = users.list_attached_managed_user_policies(
+                                            username=username)
+                                        policy_name = arn.split('/')[-1]
+                                        # Check if policy name is in the list of already attached policies
+                                        if policy_name in is_attached_already:
+                                            print("Policy already attached!")
+                                            print(f"Currently attached are as follow policies: ")
+                                            for item in is_attached_already:
+                                                print(f"- {item}")
+                                        else:
+                                            attach_attempt = users.attach_user_policy(username=username, policy_arn=arn)
+                                            print(attach_attempt)
 
                             elif users_choice == "3":
                                 print("Removing policies")

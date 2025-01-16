@@ -2,6 +2,26 @@ from . import iam_client
 from iam import iam_policy
 
 
+def attach_user_policy(username, policy_arn):
+    try:
+        iam_client.attach_user_policy(UserName=username, PolicyArn=policy_arn)
+        return f"Succesfully attached policy: {policy_arn}"
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No Such entity: {e}")
+        return None
+    except iam_client.exceptions.LimitExceededException as e:
+        print(f"Rate Limit exceeded: {e}")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failed: {e}")
+        return None
+    except iam_client.exceptions.InvalidInputException as e:
+        print(f"Invalid input exception: {e}")
+        return None
+    except iam_client.exceptions.PolicyNotAttachableException as e:
+        print(f"Policy not attachable: {e}")
+        return None
+
 
 def list_iam_users():
     try:
