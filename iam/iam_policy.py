@@ -136,7 +136,9 @@ def delete_policy_remotely(new_policy):
 
     # Get all entities attached to the policy
     response = iam_client.list_entities_for_policy(PolicyArn=policy_arn)
-    detach_entities(response, policy_arn)
+    detach_entities(response, policy_arn, attach_type="users")
+    detach_entities(response, policy_arn, attach_type="groups")
+    detach_entities(response, policy_arn, attach_type="roles")
 
     # Delete the policy after detachment
     try:

@@ -52,21 +52,19 @@ def main():
                 elif policy_choice == "3":
                     print("Listing or deleting policies in AWS...")
                     while True:
-                        deletion_choice = input("Which policy do you want to delete within AWS? Press 'l' to list all policies customer managed policies in AWS: ")
-                        if deletion_choice == "l":
-                            print("listing policies in AWS...")
-                            policy_list = iam_policy.list_policies_in_aws(arn=False, policy_type='Local')
-                            for item in policy_list:
-                                print(item)
+                        print("Which policy do you want to delete within AWS?\n")
+                        print("listing policies in AWS...")
+                        policy_list = iam_policy.list_policies_in_aws(arn=False, policy_type='Local')
+                        for item in policy_list:
+                            print(item)
+                        policy_choice = input("Type which policy you would like to delete in AWS (Caution!! This will detach from any users, groups or roles currently using this policy and delete it: ")
+                        if policy_choice not in policy_list:
+                            print("policy is not found in AWS. ")
+                            break
                         else:
-                            policy_list = iam_policy.list_policies_in_aws(arn=False, policy_type='Local')
-                            if policy_choice not in policy_list:
-                                print("policy is not found in AWS. ")
-                                break
-                            else:
-                                iam_policy.delete_policy_remotely(deletion_choice)
-                                print(f"deleting {deletion_choice}")
-                                break
+                            iam_policy.delete_policy_remotely(policy_choice)
+                            print(f"deleting {policy_choice}")
+                            break
                 elif policy_choice == "4":
                     print("Returning to main menu..")
                     break
