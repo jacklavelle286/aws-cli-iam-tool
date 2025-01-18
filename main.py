@@ -22,7 +22,7 @@ def main():
         if choice == "1":
             print("Building IAM Polices..")
             while True:
-                policy_choice = input("Select 1 to proceed with policy creation, 2 to list or delete local policy files, 3 to list policies within AWS or delete a specific policy within AWS, or 4 to return to the main menu: ").lower()
+                policy_choice = input("Select 1 to proceed with policy creation, 2 to list or delete local policy files, 3 to list policies within AWS or delete a specific policy within AWS, 4 to inspect a policy or 5 to return to the main menu: ").lower()
                 if policy_choice == "1":
                     iam_policy.user_inputs = iam_policy.get_user_input_policy()
                     iam_policy.policy_file_name = iam_policy.create_iam_policy_file(iam_policy.user_inputs)
@@ -52,22 +52,23 @@ def main():
                 elif policy_choice == "3":
                     print("Listing or deleting policies in AWS...")
                     while True:
-                        deletion_choice = input("Which policy do you want to delete within AWS? Press 'l' to list all policies customer managed policies in AWS: ")
-                        if deletion_choice == "l":
-                            print("listing policies in AWS...")
-                            policy_list = iam_policy.list_policies_in_aws(arn=False, policy_type='Local')
-                            for item in policy_list:
-                                print(item)
+                        print("Which policy do you want to delete within AWS?\n")
+                        print("listing policies in AWS...")
+                        policy_list = iam_policy.list_policies_in_aws(arn=False, policy_type='Local')
+                        for item in policy_list:
+                            print(item)
+                        policy_choice = input("Type which policy you would like to delete in AWS (Caution!! This will detach from any users, groups or roles currently using this policy and delete it: ")
+                        if policy_choice not in policy_list:
+                            print("policy is not found in AWS. ")
+                            break
                         else:
-                            policy_list = iam_policy.list_policies_in_aws(arn=False, policy_type='Local')
-                            if policy_choice not in policy_list:
-                                print("policy is not found in AWS. ")
-                                break
-                            else:
-                                iam_policy.delete_policy_remotely(deletion_choice)
-                                print(f"deleting {deletion_choice}")
-                                break
+                            iam_policy.delete_policy_remotely(policy_choice)
+                            print(f"deleting {policy_choice}")
+                            break
                 elif policy_choice == "4":
+                    print("evaluating policy...")
+                    break
+                elif policy_choice == "5":
                     print("Returning to main menu..")
                     break
 
@@ -97,7 +98,6 @@ def main():
                             print("The following users available in this account are: ")
                             for user in list_of_users:
                                 print(f"- {user}")
-                            break
                         else:
                             users_choice = input(f"\nDo you want to: \n(1) List Policies attached to {username} \n(2) Add Polices \n(3) Remove Policies \n(4) Change password \n(5) List current Credentials associated with {username} \n(6) revoke credentials for {username} \n(7) Rotate access keys for user \n(8) Delete {username} \nPress anything else to quit: \n")
                             if users_choice not in ['1', '2', '3', '4', '5', '6', '7', '8']:
@@ -119,8 +119,11 @@ def main():
                                     print("\nList of Inline policies:\n")
                                     for i_policy in list_of_inline_policies:
                                         print(f"- {i_policy}")
-                                inspect_policy = input("Do you want to inspect a policy? enter a name and you can view the policy: ")
-                                # add logic to inspect policy
+                                inspect_policy = input("Do you want to inspect a policy? enter a name and you can view the policy (note doesn't work for inline policies currently): ")
+                                policy_object = iam_policy.describe_policy(inspect_policy)
+                                print("Extracting policy information...")
+                                print(policy_object)
+
 
 
 
