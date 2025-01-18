@@ -1,6 +1,8 @@
 from . import iam_client
 from . import os
 from . import json
+from . import subprocess
+
 
 # User Input Functionality
 def get_user_input_policy():
@@ -74,6 +76,36 @@ def create_iam_policy_file(input_data):
 
     return new_file
 
+# Describe policy
+
+import json
+import subprocess
+
+
+def describe_policy(policy_name):
+    # 1. Retrieve the JSON policy as a Python dict
+    policy_arn = get_iam_policy_arn(policy_name)
+    policy = iam_client.get_policy(PolicyArn=policy_arn)
+    policy_version_id = policy['Policy']['DefaultVersionId']
+    policy_version = iam_client.get_policy_version(
+        PolicyArn=policy_arn,
+        VersionId=policy_version_id
+    )
+
+    # 2. Convert that dict to a compact JSON string
+    compact_json = json.dumps(policy_version['PolicyVersion']['Document'])
+
+    # 3. Pipe that JSON into jq "." to pretty-print it
+    result = subprocess.run(
+        ["jq", "."],
+        input=compact_json,
+        text=True,
+        capture_output=True,
+        check=True
+    )
+
+    # 4. result.stdout now contains the pretty-printed JSON
+    return result.stdout
 
 
 # IAM Policy Creation Functionality
