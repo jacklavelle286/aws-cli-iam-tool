@@ -76,36 +76,44 @@ def create_iam_policy_file(input_data):
 
     return new_file
 
-# Describe policy
-
-import json
-import subprocess
-
-
 def describe_policy(policy_name):
-    # 1. Retrieve the JSON policy as a Python dict
+
+    policy_list=list_policies_in_aws(policy_type="All", arn=False)
+    if policy_name not in policy_list:
+        print("Policy doesn't exist in AWS. Exiting...")
+        return None
+
+
     policy_arn = get_iam_policy_arn(policy_name)
-    policy = iam_client.get_policy(PolicyArn=policy_arn)
-    policy_version_id = policy['Policy']['DefaultVersionId']
-    policy_version = iam_client.get_policy_version(
-        PolicyArn=policy_arn,
-        VersionId=policy_version_id
-    )
+    try:
+        policy = iam_client.get_policy(PolicyArn=policy_arn)
+        policy_version_id = policy['Policy']['DefaultVersionId']
+        policy_version = iam_client.get_policy_version(
+            PolicyArn=policy_arn,
+            VersionId=policy_version_id
+        )
 
-    # 2. Convert that dict to a compact JSON string
-    compact_json = json.dumps(policy_version['PolicyVersion']['Document'])
+        compact_json = json.dumps(policy_version['PolicyVersion']['Document'])
+        result = subprocess.run(
+            ["jq", "."],
+            input=compact_json,
+            text=True,
+            capture_output=True,
+            check=True
+        )
 
-    # 3. Pipe that JSON into jq "." to pretty-print it
-    result = subprocess.run(
-        ["jq", "."],
-        input=compact_json,
-        text=True,
-        capture_output=True,
-        check=True
-    )
+        return result.stdout
 
-    # 4. result.stdout now contains the pretty-printed JSON
-    return result.stdout
+    except iam_client.exceptions.NoSuchEntityException as e:
+        print(f"No such entity exception: {e}.")
+        return None
+    except iam_client.exceptions.InvalidInputException as e:
+        print(f"Invalid input exception: {e}.")
+        return None
+    except iam_client.exceptions.ServiceFailureException as e:
+        print(f"Service failuure: {e}.")
+        return None
+
 
 
 # IAM Policy Creation Functionality
@@ -247,23 +255,30 @@ def list_local_policy_files():
     policies_list = os.listdir(policies_directory)
     return policies_list
 
-def list_policies_in_aws():
-    response = iam_client.list_policies(
-        Scope='Local',
-        OnlyAttached=False,
-        PolicyUsageFilter='PermissionsPolicy'
-    )
-    policies = response.get("Policies", [])
-    policy_names = [policy['PolicyName'] for policy in policies]
-    return policy_names
+# def list_policies_in_aws():
+#     response = iam_client.list_policies(
+#         Scope='Local',
+#         OnlyAttached=False,
+#         PolicyUsageFilter='PermissionsPolicy'
+#     )
+#     policies = response.get("Policies", [])
+#     policy_names = [policy['PolicyName'] for policy in policies]
+#     return policy_names
 
 
 def list_policies_in_aws(arn, policy_type):
+    """
+    List policies in AWS.
+    """
     all_policies = []
-    paginator = iam_client.get_paginator('list_policies')
-    for page in paginator.paginate(Scope=policy_type, OnlyAttached=False, PolicyUsageFilter='PermissionsPolicy'):
-        all_policies.extend(page.get("Policies", []))
-    if arn:
-        return [policy['Arn'] for policy in all_policies]
+    if policy_type not in ['All', 'AWS', 'Local']:
+        print("Invalid policy type input.")
+        return None
     else:
-        return [policy['PolicyName'] for policy in all_policies]
+        paginator = iam_client.get_paginator('list_policies')
+        for page in paginator.paginate(Scope=policy_type, OnlyAttached=False, PolicyUsageFilter='PermissionsPolicy'):
+            all_policies.extend(page.get("Policies", []))
+        if arn:
+            return [policy['Arn'] for policy in all_policies]
+        else:
+            return [policy['PolicyName'] for policy in all_policies]

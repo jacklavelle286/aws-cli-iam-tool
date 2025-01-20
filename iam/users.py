@@ -400,3 +400,21 @@ def delete_iam_user(username):
 
 
 
+def create_iam_user(username):
+    try:
+        iam_client.create_user(UserName=username)
+        return username
+    except iam_client.exceptions.LimitExceededException as e:
+        return None, f"Limit exceeded: {e}"
+    except iam_client.exceptions.EntityAlreadyExistsException as e:
+        return None, f"IAM User already exists: {e}"
+    except iam_client.exceptions.NoSuchEntityException as e:
+        return None, f"No such entity exists: {e}"
+    except iam_client.exceptions.InvalidInputException as e:
+        return None, f"Invalid input: {e}"
+    except iam_client.exceptions.ConcurrentModificationException as e:
+        return None, f"Concurrent modification: {e}"
+    except iam_client.exceptions.ServiceFailureException as e:
+        return None, f"Service failure: {e}"
+
+

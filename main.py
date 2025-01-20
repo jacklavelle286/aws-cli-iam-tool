@@ -28,27 +28,26 @@ def main():
                     iam_policy.policy_file_name = iam_policy.create_iam_policy_file(iam_policy.user_inputs)
                     iam_policy.create_policy(iam_policy.policy_file_name)
                 elif policy_choice == "2":
-                    while True:
-                        local_deletion_choice = input("Either name a local file by name to delete it, or select * to remove all local policy files: ")
-                        policy_list = iam_policy.list_local_policy_files()
-                        if local_deletion_choice != "*" and local_deletion_choice not in policy_list:
-                            print("Invalid choice - try again - either not a wildcard, or policy doesn't exist locally.")
-                            list_option = input("Press 'l' if you want to list the policies locally: ").lower()
-                            if list_option != "l":
-                                pass
-                            else:
-                                policies = iam_policy.list_local_policy_files()
-                                print("Local policies: \n")
-                                for item in policies:
-                                    print(item)
-                        elif local_deletion_choice == "*":
-                            print("Deleting all locally stored IAM policy files...")
-                            iam_policy.delete_all_policies_locally()
-                            break
+                    local_deletion_choice = input("Either name a local file by name to delete it, or select * to remove all local policy files: ")
+                    policy_list = iam_policy.list_local_policy_files()
+                    if local_deletion_choice != "*" and local_deletion_choice not in policy_list:
+                        print("Invalid choice - try again - either not a wildcard, or policy doesn't exist locally.")
+                        list_option = input("Press 'l' if you want to list the policies locally: ").lower()
+                        if list_option != "l":
+                            pass
                         else:
-                            print(f"Deleting {local_deletion_choice}...")
-                            iam_policy.delete_policy_file(local_deletion_choice)
-                            break
+                            policies = iam_policy.list_local_policy_files()
+                            print("Local policies: \n")
+                            for item in policies:
+                                print(item)
+                    elif local_deletion_choice == "*":
+                        print("Deleting all locally stored IAM policy files...")
+                        iam_policy.delete_all_policies_locally()
+                        break
+                    else:
+                        print(f"Deleting {local_deletion_choice}...")
+                        iam_policy.delete_policy_file(local_deletion_choice)
+                        break
                 elif policy_choice == "3":
                     print("Listing or deleting policies in AWS...")
                     while True:
@@ -66,7 +65,15 @@ def main():
                             print(f"deleting {policy_choice}")
                             break
                 elif policy_choice == "4":
-                    print("evaluating policy...")
+                    print("Inpsecting policy...")
+                    inspect_policy = input("Choose a policy to inspect: ")
+                    policy_object = iam_policy.describe_policy(inspect_policy)
+                    if policy_object is None:
+                        print("Error when fetching policy document document. ")
+                    elif not policy_object:
+                        print("Policy document not found.")
+                    else:
+                        print(policy_object)
                     break
                 elif policy_choice == "5":
                     print("Returning to main menu..")
@@ -82,6 +89,12 @@ def main():
                     break
                 elif users_choice == "1":
                     print("Creating user..")
+                    username = input("Enter a username for your user: ")
+                    iam_user_creation = users.create_iam_user(username)
+                    if iam_user_creation:
+                        print(f"Success! created user: {iam_user_creation}")
+                    elif iam_user_creation is None:
+                        print(iam_user_creation)
                 elif users_choice == "2":
                     print("interacting with iam users..")
                     username = input("Enter the name of the IAM user you'd like to work with: ")
@@ -121,8 +134,12 @@ def main():
                                         print(f"- {i_policy}")
                                 inspect_policy = input("Do you want to inspect a policy? enter a name and you can view the policy (note doesn't work for inline policies currently): ")
                                 policy_object = iam_policy.describe_policy(inspect_policy)
-                                print("Extracting policy information...")
-                                print(policy_object)
+                                if policy_object is None:
+                                    print("Error when fetching policy document document. ")
+                                elif not policy_object:
+                                    print("Policy document not found.")
+                                else:
+                                    print(policy_object)
 
 
 
@@ -155,8 +172,6 @@ def main():
                                     iam_policy.user_inputs = iam_policy.get_user_input_policy()
                                     iam_policy.policy_file_name = iam_policy.create_iam_policy_file(
                                         iam_policy.user_inputs)
-
-                                    # Updated block for attaching the policy
                                     created_policy = iam_policy.create_policy(iam_policy.policy_file_name)
                                     if created_policy:
                                         policy_arn = created_policy  # ARN returned by create_policy
