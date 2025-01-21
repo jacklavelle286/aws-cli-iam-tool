@@ -92,7 +92,7 @@ def main():
                     username = input("Enter a username for your user: ")
                     iam_user_creation = users.create_iam_user(username)
                     if iam_user_creation:
-                        print(f"Success! created user: {iam_user_creation}")
+                        print(iam_user_creation)
                     elif iam_user_creation is None:
                         print(iam_user_creation)
                 elif users_choice == "2":
@@ -117,21 +117,26 @@ def main():
                                 print("Exiting..")
                                 break
                             elif users_choice == "1":
-                                print("Listing IAM attached policies..")
+                                print("Listing IAM attached policies...")
                                 list_of_managed_policies = users.list_attached_managed_user_policies(username=username)
-                                if not list_of_managed_policies:
-                                    print("\nNo Managed Policies found.\n")
-                                else:
-                                    print("\nList Of managed policies: \n")
+
+                                if isinstance(list_of_managed_policies, str):
+                                    print(list_of_managed_policies)
+                                elif list_of_managed_policies:  # Non-empty list
+                                    print("\nList of Managed Policies:\n")
                                     for m_policy in list_of_managed_policies:
                                         print(f"- {m_policy}")
+
+                                print("Listing IAM inline policies...")
                                 list_of_inline_policies = users.list_attached_inline_user_policies(username=username)
-                                if not list_of_inline_policies:
-                                    print("\nNo inline policies found.\n")
-                                else:
-                                    print("\nList of Inline policies:\n")
+
+                                if isinstance(list_of_inline_policies, str):
+                                    print(list_of_inline_policies)
+                                elif list_of_inline_policies:
                                     for i_policy in list_of_inline_policies:
                                         print(f"- {i_policy}")
+
+
                                 inspect_policy = input("Do you want to inspect a policy? enter a name and you can view the policy (note doesn't work for inline policies currently): ")
                                 policy_object = iam_policy.describe_policy(inspect_policy)
                                 if policy_object is None:

@@ -40,33 +40,40 @@ def list_attached_managed_user_policies(username):
     try:
         attached_managed_policies_response = iam_client.list_attached_user_policies(UserName=username)
         attached_managed_policies = attached_managed_policies_response.get("AttachedPolicies", [])
-        return [policy["PolicyName"] for policy in attached_managed_policies]
+
+        if not attached_managed_policies:  # Explicitly handle empty list
+            raise iam_client.exceptions.NoSuchEntityException(
+                error_response={"Error": {"Code": "NoSuchEntityException", "Message": "No managed policies attached"}},
+                operation_name="ListAttachedUserPolicies"
+            )
+
+        attached_managed = [policy["PolicyName"] for policy in attached_managed_policies]
+        return attached_managed
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No policies attached to {username}: {e}")
-        return None
+        return f"No policies attached to {username}: {e}"
     except iam_client.exceptions.InvalidInputException as e:
-        print(f"Invalid input: {e}")
-        return None
+        return f"Invalid input: {e}"
     except iam_client.exceptions.ServiceFailureException as e:
-        print(f"Service failure, try again later: {e}")
-        return None
+        return f"Service failure, try again later: {e}"
 
 
 def list_attached_inline_user_policies(username):
     try:
         attached_inline_policies_response = iam_client.list_user_policies(UserName=username)
         attached_inline_policies = attached_inline_policies_response.get("PolicyNames", [])
+        if not attached_inline_policies:
+            raise iam_client.exceptions.NoSuchEntityException(
+                error_response={"Error": {"Code": "NoSuchEntityException", "Message": "No inline policies attached"}},
+                operation_name="ListAttachedUserPolicies"
+            )
         return attached_inline_policies
 
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No policies attached to {username}: {e}")
-        return None
+        return f"No policies attached to {username}: {e}"
     except iam_client.exceptions.InvalidInputException as e:
-        print(f"Invalid input: {e}")
-        return None
+        return f"Invalid input: {e}"
     except iam_client.exceptions.ServiceFailureException as e:
-        print(f"Service failure, try again later: {e}")
-        return None
+        return f"Service failure, try again later: {e}"
 
 
 def delete_user_policy(username, policy_name):
@@ -93,6 +100,7 @@ def list_access_keys(username):
     except iam_client.exceptions.ServiceFailureException as e:
         print(f"Request failure, try again later: {e}")
         return None
+
 
 
 def list_certificate_ids(username):
@@ -405,16 +413,18 @@ def create_iam_user(username):
         iam_client.create_user(UserName=username)
         return username
     except iam_client.exceptions.LimitExceededException as e:
-        return None, f"Limit exceeded: {e}"
+        return f"Limit exceeded: {e}"
     except iam_client.exceptions.EntityAlreadyExistsException as e:
-        return None, f"IAM User already exists: {e}"
+        return f"IAM User already exists: {e}"
     except iam_client.exceptions.NoSuchEntityException as e:
-        return None, f"No such entity exists: {e}"
+        return f"No such entity exists: {e}"
     except iam_client.exceptions.InvalidInputException as e:
-        return None, f"Invalid input: {e}"
+        return f"Invalid input: {e}"
     except iam_client.exceptions.ConcurrentModificationException as e:
-        return None, f"Concurrent modification: {e}"
+        return f"Concurrent modification: {e}"
     except iam_client.exceptions.ServiceFailureException as e:
-        return None, f"Service failure: {e}"
+        return f"Service failure: {e}"
 
 
+
+# edit all functions to change errpor handling to deliver actual error code to main.py
