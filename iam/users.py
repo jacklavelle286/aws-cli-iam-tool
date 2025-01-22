@@ -22,18 +22,23 @@ def attach_user_policy(username, policy_arn):
         print(f"Policy not attachable: {e}")
         return None
 
+class NoUsersFoundException(Exception):
+    """Exception raised when no IAM users are found."""
+    pass
+
 
 def list_iam_users():
     try:
         response = iam_client.list_users()
         users = response.get("Users", [])
-        return [user['UserName'] for user in users]
+        user_list = [user['UserName'] for user in users]
+        if not user_list:
+            raise NoUsersFoundException("No IAM users found in the account.")
+        return user_list
     except iam_client.exceptions.ServiceFailureException as e:
         print(f"Service failed: {e}. Try again later.")
         return []
-    except Exception as e:
-        print(f"Service failed. {e} - try again later.")
-        return []
+
 
 
 def list_attached_managed_user_policies(username):
@@ -92,14 +97,15 @@ def delete_user_policy(username, policy_name):
 def list_access_keys(username):
     try:
         access_keys = iam_client.list_access_keys(UserName=username)
+        if not access_keys:
+            raise iam_client.exceptions.NoSuchEntityException(
+                error_response={"Error": {"Code": "NoSuchEntityException", "Message": "No Access Keys found"}},
+                operation_name="ListAccessKeys"
+            )
         key_ids = [key['AccessKeyId'] for key in access_keys.get("AccessKeyMetadata", [])]
         return key_ids
-    except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No Access Keys found: {e}")
-        return None
     except iam_client.exceptions.ServiceFailureException as e:
-        print(f"Request failure, try again later: {e}")
-        return None
+        return f"Request failure, try again later: {e}"
 
 
 
@@ -427,4 +433,5 @@ def create_iam_user(username):
 
 
 
-# edit all functions to change errpor handling to deliver actual error code to main.py
+# edit all functions to change error handling to deliver actual error code to main.py through returning the error string and checking ifinstance (function_output, str) then return error as if its a string then it's not a list for example
+# start with detaching policies

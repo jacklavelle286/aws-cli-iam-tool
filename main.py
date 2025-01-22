@@ -112,7 +112,7 @@ def main():
                             for user in list_of_users:
                                 print(f"- {user}")
                         else:
-                            users_choice = input(f"\nDo you want to: \n(1) List Policies attached to {username} \n(2) Add Polices \n(3) Remove Policies \n(4) Change password \n(5) List current Credentials associated with {username} \n(6) revoke credentials for {username} \n(7) Rotate access keys for user \n(8) Delete {username} \nPress anything else to quit: \n")
+                            users_choice = input(f"\nDo you want to: \n(1) List Policies attached to {username} \n(2) Add Polices \n(3) Remove Policies \n(4) Change password \n(5) List access keys associated with {username} \n(6) revoke credentials for {username} \n(7) Rotate access keys for user \n(8) Delete {username} \nPress anything else to quit: \n")
                             if users_choice not in ['1', '2', '3', '4', '5', '6', '7', '8']:
                                 print("Exiting..")
                                 break
@@ -122,7 +122,7 @@ def main():
 
                                 if isinstance(list_of_managed_policies, str):
                                     print(list_of_managed_policies)
-                                elif list_of_managed_policies:  # Non-empty list
+                                elif list_of_managed_policies:
                                     print("\nList of Managed Policies:\n")
                                     for m_policy in list_of_managed_policies:
                                         print(f"- {m_policy}")
@@ -205,11 +205,20 @@ def main():
                                             print(detach_result)
 
 
+
                             elif users_choice == "4":
                                 print("Changing password")
 
                             elif users_choice == "5":
-                                print("listing current credentials")
+                                print("listing access keys")
+                                access_keys = users.list_access_keys(username)
+                                if isinstance(access_keys, str):
+                                    print(access_keys)
+                                elif access_keys:
+                                    print("Access keys: ")
+                                    for key in access_keys:
+                                        print(f"- {key}")
+
 
                             elif users_choice == "6":
                                 print("Revoking Credentials..")
