@@ -112,7 +112,7 @@ def main():
                             for user in list_of_users:
                                 print(f"- {user}")
                         else:
-                            users_choice = input(f"\nDo you want to: \n(1) List Policies attached to {username} \n(2) Add Polices \n(3) Remove Policies \n(4) Change password \n(5) List access keys associated with {username} \n(6) revoke credentials for {username} \n(7) Rotate access keys for user \n(8) Delete {username} \nPress anything else to quit: \n")
+                            users_choice = input(f"\nDo you want to: \n(1) List Policies attached to {username} \n(2) Add Polices \n(3) Remove Policies \n(4) Change password \n(5) List credentials associated with {username} \n(6) revoke credentials for {username} \n(7) Rotate access keys for user \n(8) Delete {username} \nPress anything else to quit: \n")
                             if users_choice not in ['1', '2', '3', '4', '5', '6', '7', '8']:
                                 print("Exiting..")
                                 break
@@ -210,14 +210,58 @@ def main():
                                 print("Changing password")
 
                             elif users_choice == "5":
-                                print("listing access keys")
-                                access_keys = users.list_access_keys(username)
-                                if isinstance(access_keys, str):
-                                    print(access_keys)
-                                elif access_keys:
-                                    print("Access keys: ")
-                                    for key in access_keys:
-                                        print(f"- {key}")
+                                print("listing credentials...")
+                                creds_options = ["access key", "certificate", "public ssh key", "service credentials","mfa devices"]
+                                creds_options_string = ", ".join(creds_options)
+                                creds_choice = input(f"Which type of credentials would you like to list? You can choose from the following: {creds_options_string}: ")
+                                if creds_choice.lower() not in creds_options:
+                                    print(f"You chose {creds_choice}: Invalid option. ")
+                                elif creds_choice.lower() == "access key":
+                                    print("listing access keys..")
+                                    access_keys = users.list_access_keys(username)
+                                    if isinstance(access_keys, str):
+                                        print(access_keys)
+                                    elif access_keys:
+                                        print("Access keys: ")
+                                        for key in access_keys:
+                                            print(f"- {key}")
+                                elif creds_choice == "certificate":
+                                    print("listing certificates..")
+                                    certs_list = users.list_certificate_ids(username)
+                                    if isinstance(certs_list, str):
+                                        print(certs_list)
+                                    elif certs_list:
+                                        print("Certificates attached: ")
+                                        for cert in certs_list:
+                                            print(f"- {cert}")
+                                elif creds_choice == "public ssh key":
+                                    print("listing SSH Keys.. ")
+                                    ssh_key_list = users.list_public_ssh_keys(username)
+                                    if isinstance(ssh_key_list, str):
+                                        print(ssh_key_list)
+                                    elif ssh_key_list:
+                                        print("list Of SSH Keys: ")
+                                        for key in ssh_key_list:
+                                            print(f"- {key}")
+                                elif creds_choice == "service credentials":
+                                    print("listing Service credentials.. ")
+                                    service_cred_list = users.list_service_specific_creds(username)
+                                    if isinstance(service_cred_list, str):
+                                        print(service_cred_list)
+                                    elif service_cred_list:
+                                        print("List of service specific creds: ")
+                                        for cred in service_cred_list:
+                                            print(f"- {cred}")
+                                elif creds_choice == "mfa devices":
+                                    print("listing mfa devices. ")
+                                    mfa_devices_list = users.list_mfa_devices(username)
+                                    if isinstance(mfa_devices_list, str):
+                                        print(mfa_devices_list)
+                                    elif mfa_devices_list:
+                                        print("List of MFA Devices: ")
+                                        for device in mfa_devices_list:
+                                            print(f"- {device}")
+
 
 
                             elif users_choice == "6":

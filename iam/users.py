@@ -96,63 +96,86 @@ def delete_user_policy(username, policy_name):
 
 def list_access_keys(username):
     try:
-        access_keys = iam_client.list_access_keys(UserName=username)
-        if not access_keys:
+        response = iam_client.list_access_keys(UserName=username)
+        key_metadata = response.get("AccessKeyMetadata", [])
+        if not key_metadata:
             raise iam_client.exceptions.NoSuchEntityException(
                 error_response={"Error": {"Code": "NoSuchEntityException", "Message": "No Access Keys found"}},
                 operation_name="ListAccessKeys"
             )
-        key_ids = [key['AccessKeyId'] for key in access_keys.get("AccessKeyMetadata", [])]
+        key_ids = [key['AccessKeyId'] for key in key_metadata]
         return key_ids
+    except iam_client.exceptions.NoSuchEntityException as e:
+        return f"{e}"
     except iam_client.exceptions.ServiceFailureException as e:
         return f"Request failure, try again later: {e}"
 
 
 
+
 def list_certificate_ids(username):
     try:
-        certificates = iam_client.list_signing_certificates(UserName=username)
-        cert_ids = [cert['CertificateId'] for cert in certificates.get('Certificates', [])]
+        response = iam_client.list_signing_certificates(UserName=username)
+        cert_metadata = response.get("Certificates", [])
+        if not cert_metadata:
+            raise iam_client.exceptions.NoSuchEntityException(
+                error_response={"Error": {"Code": "NoSuchEntityException", "Message": "No Certificates found"}},
+                operation_name="ListSigningCertificates"
+            )
+        cert_ids = [cert['CertificateId'] for cert in cert_metadata]
         return cert_ids
-    except iam_client.exceptions.NoSuchEntityException:
-        print(f"No certificates found.")
-        return None
+    except iam_client.exceptions.NoSuchEntityException as e:
+        return f"{e}"
     except iam_client.exceptions.ServiceFailureException as e:
-        print(f"Request failure, try again later: {e}")
-        return None
+        return f"Request failure, try again later: {e}"
 
 
 def list_public_ssh_keys(username):
     try:
-        keys = iam_client.list_ssh_public_keys(UserName = username)
-        key_ids = [key['SSHPublicKeyId'] for key in keys.get('SSHPublicKeys', [])]
+        response = iam_client.list_ssh_public_keys(UserName=username)
+        key_metadata = response.get("SSHPublicKeys", [])
+        if not key_metadata:
+            raise iam_client.exceptions.NoSuchEntityException(
+                error_response={"Error": {"Code": "NoSuchEntityException", "Message": "No Public Keys found"}},
+                operation_name="ListSSHPublicKeys"
+            )
+        key_ids = [key['SSHPublicKeyId'] for key in key_metadata]
         return key_ids
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No publish SSH keys found: {e}")
-        return None
+        return f"{e}"
 
 def list_service_specific_creds(username):
     try:
-        creds = iam_client.list_service_specific_credentials(UserName = username)
-        cred_ids = [cred['ServiceSpecificCredentialId'] for cred in creds.get('ServiceSpecificCredentials', [])]
+        response = iam_client.list_service_specific_credentials(UserName = username)
+        creds = response.get("ServiceSpecificCredentials", [])
+        if not creds:
+            raise iam_client.exceptions.NoSuchEntityException(
+                error_response={"Error": {"Code": "NoSuchEntityException", "Message": "No Service specific creds found"}},
+                operation_name="ListServiceSpecificCredentials"
+            )
+        cred_ids = [cred['ServiceSpecificCredentialId'] for cred in creds]
         return cred_ids
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No credentials found: {e}")
-        return None
+        return f"{e}"
     except iam_client.exceptions.ServiceNotSupportedException as e:
-        print(f"Unsupported service: {e}")
-        return None
+        return f"Unsupported service: {e}"
 
 
 
 def list_mfa_devices(username):
     try:
-        devices = iam_client.list_mfa_devices(UserName=username)
-        device_ids = [device['SerialNumber'] for device in devices.get('MFADevices', [])]
+        response = iam_client.list_mfa_devices(UserName=username)
+        devices = response.get("MFADevices", [])
+        if not devices:
+            raise iam_client.exceptions.NoSuchEntityException(
+                error_response={"Error": {"Code": "NoSuchEntityException", "Message": "No MFA Devices found"}},
+                operation_name="ListMFADevices"
+            )
+        device_ids = [device['SerialNumber'] for device in devices]
         return device_ids
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No MFA devices found: {e}")
-        return None
+        return f"{e}"
+
 
 def list_groups_for_user(username):
     try:
@@ -330,7 +353,7 @@ def delete_policies(username):
         for i_policy in i_policies:
             delete_user_policy(username=username, policy_name=i_policy)
 
-
+# have to rewrite this to account for new error handling
 def delete_iam_user(username):
     print("Deleting attached policies...\n")
     delete_policies(username=username)
