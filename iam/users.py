@@ -179,6 +179,7 @@ def list_mfa_devices(username):
 
 def list_groups_for_user(username):
     try:
+        response
         groups = iam_client.list_groups_for_user(UserName=username)
         return [group['GroupName'] for group in groups.get("Groups", [])]
     except iam_client.exceptions.NoSuchEntityException:

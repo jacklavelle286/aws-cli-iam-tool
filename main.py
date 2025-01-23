@@ -112,7 +112,7 @@ def main():
                             for user in list_of_users:
                                 print(f"- {user}")
                         else:
-                            users_choice = input(f"\nDo you want to: \n(1) List Policies attached to {username} \n(2) Add Polices \n(3) Remove Policies \n(4) Change password \n(5) List credentials associated with {username} \n(6) revoke credentials for {username} \n(7) Rotate access keys for user \n(8) Delete {username} \nPress anything else to quit: \n")
+                            users_choice = input(f"\nDo you want to: \n(1) List Policies attached to {username} \n(2 List Groups {username} is in \n(3) Add Polices \n(4) Remove Policies \n(5) Change password \n(6) List credentials associated with {username} \n(7) revoke credentials for {username} \n(8) Rotate access keys for user \n(9) Delete {username} \nPress anything else to quit: \n")
                             if users_choice not in ['1', '2', '3', '4', '5', '6', '7', '8']:
                                 print("Exiting..")
                                 break
@@ -147,9 +147,10 @@ def main():
                                     print(policy_object)
 
 
-
-
                             elif users_choice == "2":
+                                print("listing groups")
+
+                            elif users_choice == "3":
                                 print("Adding policies")
                                 attach_choice = input(
                                     "Enter 'attach' to specify a valid ARN, or type 'create' to create a new policy: ")
@@ -190,7 +191,7 @@ def main():
 
 
 
-                            elif users_choice == "3":
+                            elif users_choice == "4":
                                 print("Removing policies")
                                 all_policies = input("If you want to delete all policies type 'all' or type 'arn' to input a specific arn: ")
                                 if all_policies.lower() == "all":
@@ -206,10 +207,10 @@ def main():
 
 
 
-                            elif users_choice == "4":
+                            elif users_choice == "5":
                                 print("Changing password")
 
-                            elif users_choice == "5":
+                            elif users_choice == "6":
                                 print("listing credentials...")
                                 creds_options = ["access key", "certificate", "public ssh key", "service credentials","mfa devices"]
                                 creds_options_string = ", ".join(creds_options)
@@ -264,14 +265,14 @@ def main():
 
 
 
-                            elif users_choice == "6":
+                            elif users_choice == "7":
                                 print("Revoking Credentials..")
 
-                            elif users_choice == "7":
+                            elif users_choice == "8":
                                 print("Rotating Keys..")
 
 
-                            elif users_choice == "8":
+                            elif users_choice == "9":
                                 print(f"Deleting {username}...\n")
                                 iam_user_delete_response = iam.users.delete_iam_user(username)
                                 print(iam_user_delete_response)
