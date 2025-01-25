@@ -2,6 +2,7 @@ from . import iam_client
 from iam import iam_policy
 
 
+
 def attach_user_policy(username, policy_arn):
     try:
         iam_client.attach_user_policy(UserName=username, PolicyArn=policy_arn)
@@ -46,7 +47,7 @@ def list_attached_managed_user_policies(username):
         attached_managed_policies_response = iam_client.list_attached_user_policies(UserName=username)
         attached_managed_policies = attached_managed_policies_response.get("AttachedPolicies", [])
 
-        if not attached_managed_policies:  # Explicitly handle empty list
+        if not attached_managed_policies:
             raise iam_client.exceptions.NoSuchEntityException(
                 error_response={"Error": {"Code": "NoSuchEntityException", "Message": "No managed policies attached"}},
                 operation_name="ListAttachedUserPolicies"
@@ -85,14 +86,11 @@ def delete_user_policy(username, policy_name):
     try:
         iam_client.delete_user_policy(UserName=username, PolicyName=policy_name)
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No Such entity: {e}")
-        return None
+        return "No Such entity: {e}"
     except iam_client.exceptions.LimitExceededException as e:
-        print(f"Rate Limit exceeded: {e}")
-        return None
+        return f"Rate Limit exceeded: {e}"
     except iam_client.exceptions.ServiceFailureException as e:
-        print(f"Service failed: {e}")
-        return None
+        return f"Service failed: {e}"
 
 def list_access_keys(username):
     try:
@@ -179,15 +177,22 @@ def list_mfa_devices(username):
 
 def list_groups_for_user(username):
     try:
-        response
-        groups = iam_client.list_groups_for_user(UserName=username)
-        return [group['GroupName'] for group in groups.get("Groups", [])]
-    except iam_client.exceptions.NoSuchEntityException:
-        print(f"No groups found.")
-        return None
+        response = iam_client.list_groups_for_user(UserName=username)
+        groups = response.get("Groups", [])
+        if not groups:
+            raise iam_client.exceptions.NoSuchEntityException(
+                error_response={"Error": {"Code": "NoSuchEntityException", "Message": "No Groups found attached to user."}},
+                operation_name="ListGroupsForUser"
+            )
+        group_names = [group['GroupName'] for group in groups]
+        return group_names
+    except iam_client.exceptions.NoSuchEntityException as e:
+        return f"{e}"
+
     except iam_client.exceptions.ServiceFailureException as e:
-        print(f"Request failure, try again later: {e}")
-        return None
+        return f"Request failure, try again later: {e}"
+
+
 
 
 def detach_user_policy(username, policy_arn):
@@ -329,30 +334,7 @@ def delete_user(username):
 
 
 
-# delete policies:
 
-def delete_policies(username):
-    print("Deleting attached policies...\n")
-    managed_policies = list_attached_managed_user_policies(username=username)
-    if managed_policies is None:
-        print("Error retrieving managed policies. Skipping.\n")
-    elif not managed_policies:
-        print("No managed policies attached.\n")
-    else:
-        for policy in managed_policies:
-            print(f"Detaching managed policies: {policy}\n")
-            arn = iam_policy.get_iam_policy_arn(policy)
-            detach_user_policy(username=username, policy_arn=arn)
-
-    print("Deleting inline policies...\n")
-    i_policies = list_attached_inline_user_policies(username=username)
-    if i_policies is None:
-        print("Error listing attached Inline policies. \n")
-    elif not i_policies:
-        print("No Inline policies attached. \n")
-    else:
-        for i_policy in i_policies:
-            delete_user_policy(username=username, policy_name=i_policy)
 
 # have to rewrite this to account for new error handling
 def delete_iam_user(username):
