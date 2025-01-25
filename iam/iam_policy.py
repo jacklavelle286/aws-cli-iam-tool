@@ -255,15 +255,6 @@ def list_local_policy_files():
     policies_list = os.listdir(policies_directory)
     return policies_list
 
-# def list_policies_in_aws():
-#     response = iam_client.list_policies(
-#         Scope='Local',
-#         OnlyAttached=False,
-#         PolicyUsageFilter='PermissionsPolicy'
-#     )
-#     policies = response.get("Policies", [])
-#     policy_names = [policy['PolicyName'] for policy in policies]
-#     return policy_names
 
 
 def list_policies_in_aws(arn, policy_type):
@@ -284,4 +275,4 @@ def list_policies_in_aws(arn, policy_type):
             return [policy['PolicyName'] for policy in all_policies]
 
 
-# edit all functions to change errpor handling to deliver actual error code to main.py
+# edit all functions to change error handling to deliver actual error code to main.py

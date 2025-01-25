@@ -1,6 +1,24 @@
 from . import iam_client
 from iam import iam_policy
 
+def create_iam_user(username):
+    try:
+        if username == "":
+            return f"No name entered. "
+        iam_client.create_user(UserName=username)
+        return f"Successfully created user:{username}"
+    except iam_client.exceptions.LimitExceededException as e:
+        return f"Limit exceeded: {e}"
+    except iam_client.exceptions.EntityAlreadyExistsException as e:
+        return f"IAM User already exists: {e}"
+    except iam_client.exceptions.NoSuchEntityException as e:
+        return f"No such entity exists: {e}"
+    except iam_client.exceptions.InvalidInputException as e:
+        return f"Invalid input: {e}"
+    except iam_client.exceptions.ConcurrentModificationException as e:
+        return f"Concurrent modification: {e}"
+    except iam_client.exceptions.ServiceFailureException as e:
+        return f"Service failure: {e}"
 
 
 def attach_user_policy(username, policy_arn):
@@ -85,6 +103,7 @@ def list_attached_inline_user_policies(username):
 def delete_user_policy(username, policy_name):
     try:
         iam_client.delete_user_policy(UserName=username, PolicyName=policy_name)
+        return f"successfully deleted {policy_name}"
     except iam_client.exceptions.NoSuchEntityException as e:
         return "No Such entity: {e}"
     except iam_client.exceptions.LimitExceededException as e:
@@ -200,101 +219,79 @@ def detach_user_policy(username, policy_arn):
         iam_client.detach_user_policy(UserName=username, PolicyArn=policy_arn)
         return f"successfully detached {policy_arn}."
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No such entity: {e}")
-        return None
+        return f"No such entity: {e}"
     except iam_client.exceptions.LimitExceededException as e:
-        print(f"Rate limit succeeded: {e}")
-        return None
+        return f"Rate limit succeeded: {e}"
     except iam_client.exceptions.InvalidInputException as e:
-        print(f"Invalid input: {e}")
-        return None
+        return f"Invalid input: {e}"
     except iam_client.exceptions.ServiceFailureException as e:
-        print(f"Service failure: {e}")
-        return None
+        return f"Service failure: {e}"
 
 def delete_access_key(username, access_key_id):
     try:
         iam_client.delete_access_key(UserName=username, AccessKeyId=access_key_id)
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No such entity: {e}")
-        return None
+        return f"No such entity: {e}"
     except iam_client.exceptions.LimitExceededException as e:
-        print(f"Rate limit exceeded: {e}")
-        return None
+        return f"Rate limit exceeded: {e}"
     except iam_client.exceptions.ServiceFailureException as e:
-        print(f"Service failure: {e}")
-        return None
+        return f"Service failure: {e}"
 
 
 def delete_signing_certificate(username, cert):
     try:
         iam_client.delete_signing_certificate(UserName=username, CertificateId=cert)
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No such entity: {e}")
-        return None
+        return f"No such entity: {e}"
     except iam_client.exceptions.LimitExceededException as e:
-        print(f"Rate limit succeeded: {e}")
-        return None
+        return f"Rate limit succeeded: {e}"
     except iam_client.exceptions.ConcurrentModificationException as e:
-        print(f"Concurrent modification exception: {e}")
-        return None
+        return f"Concurrent modification exception: {e}"
     except iam_client.exceptions.ServiceFailureException as e:
-        print(f"Service failure: {e}")
-        return None
+        return f"Service failure: {e}"
 
 
 def delete_ssh_public_key(username, key_id):
     try:
         iam_client.delete_ssh_public_key(UserName=username, SSHPublicKeyId=key_id)
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No such entity: {e}")
-        return None
+        return f"No such entity: {e}"
 
 
 def delete_service_specific_creds(username, cred):
     try:
         iam_client.delete_service_specific_credential(UserName=username, ServiceSpecificCredentialId=cred)
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No such entity: {e}")
-        return None
+        return f"No such entity: {e}"
 
 def deactivate_mfa_device(username, serial_id):
     try:
         iam_client.deactivate_mfa_device(UserName=username, SerialNumber=serial_id)
     except iam_client.exceptions.EntityTemporarilyUnmodifiableException as e:
-        print(f"Entity temporarily unmodifiable, try again later: {e}")
-        return None
+        return f"Entity temporarily unmodifiable, try again later: {e}"
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No such entity: {e}")
-        return None
+        return f"No such entity: {e}"
     except iam_client.exceptions.LimitExceededException as e:
-        print(f"Rate limit exceeded: {e}")
-        return None
+        return f"Rate limit exceeded: {e}"
     except iam_client.exceptions.ServiceFailureException as e:
-        print(f"Service failure: {e}")
-        return None
+        return f"Service failure: {e}"
     except iam_client.exceptions.ConcurrentModificationException as e:
-        print(f"Concurrent modification exception: {e}")
-        return None
+        return f"Concurrent modification exception: {e}"
 
 def delete_login_profile(username):
     try:
         iam_client.delete_login_profile(UserName=username)
         return "Login profile deleted successfully."
-    except iam_client.exceptions.NoSuchEntityException:
-        return "No login profile found for user."
+    except iam_client.exceptions.NoSuchEntityException as e:
+        return f"No login profile found for {username}: {e}"
     except iam_client.exceptions.EntityTemporarilyUnmodifiableException as e:
-        print(f"Entity temporarily unmodifiable, try again later: {e}")
-        return None
+        return f"Entity temporarily unmodifiable, try again later: {e}"
     except iam_client.exceptions.LimitExceededException as e:
-        print(f"Rate limit exceeded: {e}")
-        return None
+        return f"Rate limit exceeded: {e}"
     except iam_client.exceptions.ServiceFailureException as e:
-        print(f"Service failure: {e}")
-        return None
+        return f"Service failure: {e}"
     except iam_client.exceptions.ConcurrentModificationException as e:
-        print(f"Concurrent modification exception: {e}")
-        return None
+        return f"Concurrent modification exception: {e}"
 
 
 
@@ -303,43 +300,55 @@ def remove_user_from_group(username, group):
         iam_client.remove_user_from_group(UserName=username, GroupName=group)
         return "User removed from groups successfully. "
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No such entity: {e}")
-        return None
+        return f"No such entity: {e}"
     except iam_client.exceptions.LimitExceededException as e:
-        print(f"Rate limit succeeded: {e}")
-        return None
+        return f"Rate limit succeeded: {e}"
     except iam_client.exceptions.ServiceFailureException as e:
-        print(f"Service failure: {e}")
-        return None
+        return f"Service failure: {e}"
 
 def delete_user(username):
     try:
         iam_client.delete_user(UserName=username)
-        return f"Succesfully deleted {username}"
+        return f"Successfully deleted {username}"
     except iam_client.exceptions.LimitExceededException as e:
-        print(f"Rate limited exceeded: {e}")
-        return None
+        return f"Rate limited exceeded: {e}"
     except iam_client.exceptions.NoSuchEntityException as e:
-        print(f"No such user: {e}")
-        return None
+        return f"No such user: {e}"
     except iam_client.exceptions.DeleteConflictException as e:
-        print(f"Delete conflict, make sure everything is detached before deletion: {e}")
-        return None
+        return f"Delete conflict, make sure everything is detached before deletion: {e}"
     except iam_client.exceptions.ConcurrentModificationException as e:
-        print(f"Concurrent modification exception: {e}")
-        return None
+        return f"Concurrent modification exception: {e}"
     except iam_client.exceptions.ConcurrentModificationException as e:
-        print(f"Service failure: {e}")
-        return None
+        return f"Service failure: {e}"
 
 
 
-
-
-# have to rewrite this to account for new error handling
 def delete_iam_user(username):
-    print("Deleting attached policies...\n")
-    delete_policies(username=username)
+    print("Deleting inline policies...\n")
+    # list attached policies
+    user_inline_policy_list = list_attached_inline_user_policies(username=username)
+    if isinstance(user_inline_policy_list, str):
+        print(user_inline_policy_list)
+    else:
+        for policy in user_inline_policy_list:
+            print(f"deleting inline policy {policy}")
+            delete_user_policy_action = delete_user_policy(username=username, policy_name=policy)
+            print(delete_user_policy_action)
+
+
+    print("Detaching managed policies...")
+    # list managed policies
+    managed_policy_list = list_attached_managed_user_policies(username)
+    if isinstance(managed_policy_list, str):
+        print(managed_policy_list)
+    else:
+        for policy in managed_policy_list:
+            # get arn of each policy
+            policy_arn = iam_policy.get_iam_policy_arn(new_policy=policy)
+            detach_user_policy(username=username, policy_arn=policy_arn)
+            print(f"Detached {policy_arn} from {username}")
+
+            # works
     print("Deleting access keys...\n")
     key_list = list_access_keys(username)
     if key_list is None:
@@ -420,22 +429,6 @@ def delete_iam_user(username):
 
 
 
-def create_iam_user(username):
-    try:
-        iam_client.create_user(UserName=username)
-        return username
-    except iam_client.exceptions.LimitExceededException as e:
-        return f"Limit exceeded: {e}"
-    except iam_client.exceptions.EntityAlreadyExistsException as e:
-        return f"IAM User already exists: {e}"
-    except iam_client.exceptions.NoSuchEntityException as e:
-        return f"No such entity exists: {e}"
-    except iam_client.exceptions.InvalidInputException as e:
-        return f"Invalid input: {e}"
-    except iam_client.exceptions.ConcurrentModificationException as e:
-        return f"Concurrent modification: {e}"
-    except iam_client.exceptions.ServiceFailureException as e:
-        return f"Service failure: {e}"
 
 
 

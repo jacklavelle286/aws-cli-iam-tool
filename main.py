@@ -91,6 +91,8 @@ def main():
                     print("Creating user..")
                     username = input("Enter a username for your user: ")
                     iam_user_creation = users.create_iam_user(username)
+                    if not iam_user_creation:
+                        print("Didn't enter anything")
                     if iam_user_creation:
                         print(iam_user_creation)
                     elif iam_user_creation is None:
@@ -105,7 +107,7 @@ def main():
                         for user in current_list_of_users:
                             print(f"- {user}")
                     else:
-                        users_choice = input(f"\nDo you want to: \n(1) List Policies attached to {username} \n(2 List Groups {username} is in \n(3) Remove {username} from a group \n(4) Add Polices \n(5) Remove Policies \n(6) Change password \n(7) List credentials associated with {username} \n(8) revoke credentials for {username} \n(9) Rotate access keys for user \n(10) Delete {username} \nPress anything else to quit: \n")
+                        users_choice = input(f"\nDo you want to: \n(1) List Policies attached to {username} \n(2 List Groups {username} is in \n(3) Remove {username} from a group \n(4) Add Polices to {username}\n(5) Remove Policies from {username}\n(6) Change password or {username} \n(7) List credentials associated with {username} \n(8) revoke credentials for {username} \n(9) Rotate access keys for {username} \n(10) Delete {username} \nPress anything else to quit: \n")
                         if users_choice not in ['1', '2', '3', '4', '5', '6', '7', '8']:
                             print("Exiting..")
                             break
@@ -209,6 +211,17 @@ def main():
                                         print(f"Detached {policy_arn} from {username}")
                                 # delete inline policies
                                 # for policy in inline policy, call delete user policy function
+                                list_of_inline_policies = users.list_attached_inline_user_policies(username=username)
+                                if isinstance(list_of_inline_policies, str):
+                                    print(list_of_inline_policies)
+                                elif list_of_inline_policies:
+                                    for policy in list_of_inline_policies:
+                                        print(f"Deleting inline policy: {policy}")
+                                        delete_inline_policies = users.delete_user_policy(username=username, policy_name=policy)
+                                        if delete_inline_policies:
+                                            print(delete_inline_policies)
+
+
                             elif all_policies.lower() == "arn":
                                 specific_arn = input("List a specific policy arn: ")
                                 list_of_policies_attached = users.list_attached_managed_user_policies(username) # returns non arns
