@@ -351,14 +351,16 @@ def delete_iam_user(username):
             # works
     print("Deleting access keys...\n")
     key_list = list_access_keys(username)
-    if key_list is None:
-        print("Error listing keys. \n")
-    elif not key_list:
-        print("No Access keys found. \n")
-    else:
+    if isinstance(key_list, str):
+        print(key_list)
+    elif key_list:
+        print("Listing Keys..")
+        for key in key_list:
+            print(f"-{key}")
         for key in key_list:
             print(f"Deleting: {key}\n")
             delete_access_key(username=username, access_key_id=key)
+
 
     print("Deleting certificates...\n")
     cert_ids = list_certificate_ids(username)
