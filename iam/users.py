@@ -230,6 +230,7 @@ def detach_user_policy(username, policy_arn):
 def delete_access_key(username, access_key_id):
     try:
         iam_client.delete_access_key(UserName=username, AccessKeyId=access_key_id)
+        return f"Successfully deleted access key: {access_key_id}"
     except iam_client.exceptions.NoSuchEntityException as e:
         return f"No such entity: {e}"
     except iam_client.exceptions.LimitExceededException as e:
@@ -241,6 +242,7 @@ def delete_access_key(username, access_key_id):
 def delete_signing_certificate(username, cert):
     try:
         iam_client.delete_signing_certificate(UserName=username, CertificateId=cert)
+        return f"Successfully deleted cert: {cert}"
     except iam_client.exceptions.NoSuchEntityException as e:
         return f"No such entity: {e}"
     except iam_client.exceptions.LimitExceededException as e:
@@ -267,6 +269,7 @@ def delete_service_specific_creds(username, cred):
 def deactivate_mfa_device(username, serial_id):
     try:
         iam_client.deactivate_mfa_device(UserName=username, SerialNumber=serial_id)
+        return f"Successfully deactivated MFA: {serial_id}"
     except iam_client.exceptions.EntityTemporarilyUnmodifiableException as e:
         return f"Entity temporarily unmodifiable, try again later: {e}"
     except iam_client.exceptions.NoSuchEntityException as e:
@@ -281,7 +284,7 @@ def deactivate_mfa_device(username, serial_id):
 def delete_login_profile(username):
     try:
         iam_client.delete_login_profile(UserName=username)
-        return "Login profile deleted successfully."
+        return f"Login profile for {username} deleted successfully."
     except iam_client.exceptions.NoSuchEntityException as e:
         return f"No login profile found for {username}: {e}"
     except iam_client.exceptions.EntityTemporarilyUnmodifiableException as e:
@@ -298,7 +301,7 @@ def delete_login_profile(username):
 def remove_user_from_group(username, group):
     try:
         iam_client.remove_user_from_group(UserName=username, GroupName=group)
-        return "User removed from groups successfully. "
+        return f"User {username} removed from groups successfully. "
     except iam_client.exceptions.NoSuchEntityException as e:
         return f"No such entity: {e}"
     except iam_client.exceptions.LimitExceededException as e:
@@ -348,7 +351,6 @@ def delete_iam_user(username):
             detach_user_policy(username=username, policy_arn=policy_arn)
             print(f"Detached {policy_arn} from {username}")
 
-            # works
     print("Deleting access keys...\n")
     key_list = list_access_keys(username)
     if isinstance(key_list, str):
@@ -364,14 +366,13 @@ def delete_iam_user(username):
 
     print("Deleting certificates...\n")
     cert_ids = list_certificate_ids(username)
-    if cert_ids is None:
-        print("Error listing Cert IDs.\n")
-    elif not cert_ids:
-        print("No Certificates found.\n")
-    else:
+    if isinstance(cert_ids, str):
+        print(cert_ids)
+    elif cert_ids:
         for cert in cert_ids:
             print(f"Deleting: {cert}\n")
-            delete_signing_certificate(username=username, cert=cert)
+            deleting_certs = delete_signing_certificate(username=username, cert=cert)
+            
 
     print("Deleting SSH keys...\n")
     keys = list_public_ssh_keys(username=username)
