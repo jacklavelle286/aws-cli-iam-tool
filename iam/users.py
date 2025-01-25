@@ -372,15 +372,14 @@ def delete_iam_user(username):
         for cert in cert_ids:
             print(f"Deleting: {cert}\n")
             deleting_certs = delete_signing_certificate(username=username, cert=cert)
-            
+            print(deleting_certs)
+
 
     print("Deleting SSH keys...\n")
     keys = list_public_ssh_keys(username=username)
-    if keys is None:
-        print("Error listing SSH keys.\n")
-    elif not keys:
-        print("No SSH keys found.\n")
-    else:
+    if isinstance(keys, str):
+        print(keys)
+    elif keys:
         for key in keys:
             print(f"Deleting: {key}\n")
             delete_ssh_public_key(username=username, key_id=key)
@@ -398,19 +397,20 @@ def delete_iam_user(username):
 
     print("Deleting MFA devices...\n")
     devices_ids = list_mfa_devices(username)
-    if devices_ids is None:
-        print("Error listing MFA devices.\n")
-    elif not devices_ids:
-        print("No MFA devices found.\n")
-    else:
+    if isinstance(devices_ids, str):
+        print(devices_ids)
+    elif devices_ids:
         for serial_id in devices_ids:
             print(f"Deactivating: {serial_id}\n")
-            deactivate_mfa_device(username=username, serial_id=serial_id)
+            deactivate = deactivate_mfa_device(username=username, serial_id=serial_id)
+            print(deactivate)
 
     print("Deleting login profile...\n")
     delete_login_profile_response = delete_login_profile(username=username)
-    if delete_login_profile_response is None:
-        print("Error deleting login profile.\n")
+    if isinstance(delete_login_profile_response, str):
+        print(delete_login_profile_response)
+    elif delete_login_profile_response:
+        print(f"Deleted Login profile.")
 
     print("Removing user from groups...\n")
     users_groups = list_groups_for_user(username)
