@@ -108,7 +108,7 @@ def main():
                             print(f"- {user}")
                     else:
                         users_choice = input(f"\nDo you want to: \n(1) List Policies attached to {username} \n(2 List Groups {username} is in \n(3) Remove {username} from a group \n(4) Add Polices to {username}\n(5) Remove Policies from {username}\n(6) Change password or {username} \n(7) List credentials associated with {username} \n(8) revoke credentials for {username} \n(9) Rotate access keys for {username} \n(10) Delete {username} \nPress anything else to quit: \n")
-                        if users_choice not in ['1', '2', '3', '4', '5', '6', '7', '8']:
+                        if users_choice not in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']:
                             print("Exiting..")
                             break
                         elif users_choice == "1":

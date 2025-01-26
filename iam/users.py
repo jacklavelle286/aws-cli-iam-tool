@@ -1,3 +1,5 @@
+from time import process_time
+
 from . import iam_client
 from iam import iam_policy
 
@@ -327,6 +329,10 @@ def delete_user(username):
 
 
 def delete_iam_user(username):
+    # checking if user is valid:
+    list_of_users = list_iam_users()
+    if not list_of_users:
+        print(list_of_users)
     print("Deleting inline policies...\n")
     # list attached policies
     user_inline_policy_list = list_attached_inline_user_policies(username=username)
@@ -386,11 +392,9 @@ def delete_iam_user(username):
 
     print("Deleting service-specific credentials...\n")
     creds = list_service_specific_creds(username)
-    if creds is None:
-        print("Error listing service-specific credentials.\n")
-    elif not creds:
-        print("No service-specific credentials found.\n")
-    else:
+    if isinstance(creds, str):
+        print(creds)
+    elif creds:
         for cred in creds:
             print(f"Deleting: {cred}\n")
             delete_service_specific_creds(username=username, cred=cred)
@@ -414,21 +418,17 @@ def delete_iam_user(username):
 
     print("Removing user from groups...\n")
     users_groups = list_groups_for_user(username)
-    if users_groups is None:
-        print(f"Error listing {username}'s groups.\n")
-    elif not users_groups:
-        print("No groups found.\n")
-    else:
+    if isinstance(users_groups, str):
+        print(users_groups)
+    elif users_groups:
         for group in users_groups:
             print(f"Removing user from group: {group}\n")
-            remove_user_from_group(username=username, group=group)
+            removed_result = remove_user_from_group(username=username, group=group)
+            print(removed_result)
 
     print("Deleting IAM user...\n")
     delete_user_response = delete_user(username=username)
-    if delete_user_response:
-        return f"Successfully deleted IAM user: {username}\n"
-    else:
-        return f"Failed to delete IAM user: {username}. Ensure all dependencies are removed.\n"
+    return delete_user_response
 
 
 
