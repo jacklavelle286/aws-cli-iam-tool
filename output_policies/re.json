@@ -2,7 +2,7 @@
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "sidd",
+            "Sid": "re",
             "Effect": "Allow",
             "Action": [
                 "*"

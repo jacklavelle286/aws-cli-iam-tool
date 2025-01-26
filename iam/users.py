@@ -1,12 +1,11 @@
-from time import process_time
-
 from . import iam_client
 from iam import iam_policy
+
 
 def create_iam_user(username):
     try:
         if username == "":
-            return f"No name entered. "
+            return None
         iam_client.create_user(UserName=username)
         return f"Successfully created user:{username}"
     except iam_client.exceptions.LimitExceededException as e:
@@ -196,6 +195,60 @@ def list_mfa_devices(username):
         return f"{e}"
 
 
+def set_password_policy():
+    print("Setting")
+
+
+def check_password_policy():
+    try:
+        response = iam_client.get_account_password_policy()
+        if not response:
+            raise iam_client.exceptions.NoSuchEntityException(
+                error_response={"Error": {"Code": "NoSuchEntityException", "Message": "No Password Policy found. You can set this in the Admin console of this programme. "}},
+                operation_name="GetAccountPasswordPolicy"
+            )
+        else:
+            return response
+    except iam_client.exceptions.NoSuchEntityException as e:
+        return f"{e}"
+
+
+
+def check_login_profile(username):
+    try:
+        profile = iam_client.get_login_profile(UserName=username)
+        if profile:
+            return True
+    except iam_client.exceptions.NoSuchEntityException:
+            return False
+
+def create_login_profile(username, password):
+    try:
+        login_profile = iam_client.create_login_profile(UserName=username, Password=password)
+        return f"Created login profile for {username}"
+    except iam_client.exceptions.EntityAlreadyExistsException:
+        return f"Login Profile already exists for {username}"
+    except iam_client.exceptions.PasswordPolicyViolationException as e:
+        return f"This password for {username} does not adhere to the account's password policy: {e}"
+
+
+
+def change_password(username,password):
+    check_if_password_policy = check_password_policy()
+    if isinstance(check_if_password_policy, str):
+        return "Cannot change password without setting password policy. "
+    else:
+        is_login_profile = check_login_profile(username)
+        if not is_login_profile:
+            login_profile = create_login_profile(username=username, password=password)
+            print(login_profile)
+        else:
+            update_login_profile = iam_client.update_login_profile(UserName=username,Password=password)
+            print(update_login_profile)
+        return f"Password Successfully updated for {username}"
+
+
+
 def list_groups_for_user(username):
     try:
         response = iam_client.list_groups_for_user(UserName=username)
@@ -214,7 +267,8 @@ def list_groups_for_user(username):
         return f"Request failure, try again later: {e}"
 
 
-
+def add_user_to_group(username):
+    print("adding user to group")
 
 def detach_user_policy(username, policy_arn):
     try:
