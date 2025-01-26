@@ -1,3 +1,5 @@
+from operator import indexOf
+
 from iam import iam_policy, users
 from iam import iam_client
 import getpass
@@ -150,7 +152,7 @@ def main():
                             print(f"- {user}")
                     else:
                         while True:
-                            users_choice = input(f"\nDo you want to: \n(1) List Policies attached to {username} \n(2 List Groups {username} is in \n(3) Add {username} to a group \n(4) Remove {username} from a group \n(5) Add Polices to {username}\n(6) Remove Policies from {username}\n(7) Change password for {username} \n(8) List credentials associated with {username} \n(9) revoke credentials for {username} \n(10) Rotate access keys for {username} \n(11) Delete {username} \nPress anything else to quit: \n")
+                            users_choice = input(f"\nDo you want to: \n(1) List Policies attached to {username} \n(2) List Groups {username} is in \n(3) Add {username} to a group \n(4) Remove {username} from a group \n(5) Add Polices to {username}\n(6) Remove Policies from {username}\n(7) Change password for {username} \n(8) List credentials associated with {username} \n(9) revoke credentials for {username} \n(10) Rotate access keys for {username} \n(11) Delete {username} \nPress anything else to quit: \n")
                             if users_choice not in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']:
                                 print("Exiting..")
                                 break
@@ -421,17 +423,39 @@ def main():
                                     for key in list_of_access_keys:
                                         print(f"- {key}")
                                     key_list_string = ", ".join(list_of_access_keys)
-                                    which_key_rotate = input(f"Which key would you like to rotate? {key_list_string} \n Choose the corresponding number or key in the list to rotate it. ")
+                                    which_key_rotate = int(input(f"Which key would you like to rotate? {key_list_string} \n Choose the corresponding number of the key in the list to rotate it. ")) -1
+                                    length_list = [item for item in range(length_of_keys)]
+                                    if which_key_rotate not in range(0, len(length_list) -1):
+                                        print("Invalid option. ")
+                                    else:
+                                        # get access key from index
+                                        chosen_key = list_of_access_keys[which_key_rotate]
+                                        print(f"You have chosen: {chosen_key}.")
+                                        revoke = input(f"Do you want to revoke this key? {chosen_key} \n Yes or anything else to exit. ")
+                                        if revoke != "yes":
+                                            print("Aborting key deletion..")
+                                        elif revoke == "yes":
+                                            print(f"Revoking {chosen_key}..")
+                                            revoke_key = users.delete_access_key(username, access_key_id=chosen_key)
+                                            print(revoke_key)
+                                    # create new key and expose access key id and secret access
+                                            create = input("Do you want to create the new key?: (yes or anything else to exit) ")
+                                            if create != "yes":
+                                                print("Aborting key creation..")
+                                            elif create == "yes":
+                                                print("WARNING! Keep these values secure as it is highly privileged information. ")
+                                                new_access_key_id, new_secret_access_key = users.create_access_key(
+                                                    username)
+                                                print(f"Access Key ID: {new_access_key_id[0]}")
+                                                print(f"Secret Access Key: {new_secret_access_key[0]}")
 
-
-                                # choose key to revoke
-                                # create new key and expose access key id and secret access key
 
 
                             elif users_choice == "11":
                                 print(f"Deleting {username}...\n")
                                 iam_user_delete_response = users.delete_iam_user(username)
                                 print(iam_user_delete_response)
+                                break
 
                             else:
                                 print("Exiting.")

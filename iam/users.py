@@ -196,7 +196,20 @@ def list_mfa_devices(username):
 
 
 def set_password_policy():
-    print("Setting")
+    print("Setting for admin sect")
+
+
+def create_access_key(username):
+    try:
+        response = iam_client.create_access_key(UserName=username)
+        key_information = response.get("AccessKey",[])
+        access_key_id = [key_information['AccessKeyId']]
+        secret_access_key = [key_information['SecretAccessKey']]
+        return access_key_id, secret_access_key
+    except iam_client.exceptions.NoSuchEntityException as e:
+        return {f"{e}"}
+
+
 
 
 def check_password_policy():
@@ -225,7 +238,7 @@ def check_login_profile(username):
 def create_login_profile(username, password):
     try:
         login_profile = iam_client.create_login_profile(UserName=username, Password=password)
-        return f"Created login profile for {username}"
+        return f"Created login profile {login_profile} for {username}"
     except iam_client.exceptions.EntityAlreadyExistsException:
         return f"Login Profile already exists for {username}"
     except iam_client.exceptions.PasswordPolicyViolationException as e:
