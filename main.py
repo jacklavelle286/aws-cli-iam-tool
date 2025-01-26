@@ -289,7 +289,7 @@ def main():
 
 
 
-                            elif users_choice == "7":q
+                            elif users_choice == "7":
                                 print("Changing password")
                                 password = getpass.getpass("Enter your password: ")
                                 change_password = users.change_password(username, password)
@@ -348,18 +348,24 @@ def main():
                                         for device in mfa_devices_list:
                                             print(f"- {device}")
 
-
+# just need to do revoke creds and rotate keys then done
 
                             elif users_choice == "9":
                                 print("Revoking Credentials..")
-
+                                list_of_creds = users.list_service_specific_creds(username)
+                                if isinstance(list_of_creds, str):
+                                    print(list_of_creds)
+                                elif list_of_creds:
+                                    for cred in list_of_creds:
+                                        cred_deletion = users.delete_service_specific_creds(username, cred=cred)
+                                        print(cred_deletion)
                             elif users_choice == "10":
                                 print("Rotating Keys..")
 
 
                             elif users_choice == "11":
                                 print(f"Deleting {username}...\n")
-                                iam_user_delete_response = iam.users.delete_iam_user(username)
+                                iam_user_delete_response = users.delete_iam_user(username)
                                 print(iam_user_delete_response)
 
                             else:
