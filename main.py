@@ -411,6 +411,21 @@ def main():
 
                             elif users_choice == "10":
                                 print("Rotating Keys..")
+                                # list keys
+                                list_of_access_keys = users.list_access_keys(username)
+                                if isinstance(list_of_access_keys, str):
+                                    print(list_of_access_keys)
+                                elif list_of_access_keys:
+                                    print("List of keys: ")
+                                    length_of_keys = len(list_of_access_keys) + 1
+                                    for key in list_of_access_keys:
+                                        print(f"- {key}")
+                                    key_list_string = ", ".join(list_of_access_keys)
+                                    which_key_rotate = input(f"Which key would you like to rotate? {key_list_string} \n Choose the corresponding number or key in the list to rotate it. ")
+
+
+                                # choose key to revoke
+                                # create new key and expose access key id and secret access key
 
 
                             elif users_choice == "11":
