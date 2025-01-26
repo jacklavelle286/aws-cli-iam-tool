@@ -71,8 +71,7 @@ Managing IAM resources using the AWS CLI can be complex and time-consuming, espe
 ## Future Vision
 The tool is being developed into a fully-fledged CLI application with:
 - Installation via `pip` (`pip install aws-cli-iam-tool`).
-- Subcommands for managing IAM resources (`iam-tool policy create`, `iam-tool user list`, etc.).
-- Enhanced error handling and input validation.
+- Use of a library like `prompt_toolkit` to improve user experience
 - Tab-completion for easier navigation.
 
 ---

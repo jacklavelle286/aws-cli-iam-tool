@@ -2,13 +2,13 @@
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "sid",
-            "Effect": "Allow",
+            "Sid": "wewe",
+            "Effect": "Deny",
             "Action": [
                 "*"
             ],
             "Resource": [
-                "arn:aws:s3:::aws-lz-state-bucket-testing-28696"
+                "*"
             ]
         }
     ]
