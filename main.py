@@ -351,14 +351,64 @@ def main():
 # just need to do revoke creds and rotate keys then done
 
                             elif users_choice == "9":
-                                print("Revoking Credentials..")
-                                list_of_creds = users.list_service_specific_creds(username)
-                                if isinstance(list_of_creds, str):
-                                    print(list_of_creds)
-                                elif list_of_creds:
-                                    for cred in list_of_creds:
-                                        cred_deletion = users.delete_service_specific_creds(username, cred=cred)
-                                        print(cred_deletion)
+                                creds_options = ["access key", "certificate", "public ssh key", "service credentials","mfa devices"]
+                                creds_options_string = ", ".join(creds_options)
+                                credential_choice = input(f"Which type of credentials do you want to revoke? You can choose from the following: {creds_options_string}: ")
+                                if credential_choice not in creds_options:
+                                    print("Invalid input.")
+                                elif credential_choice == "access key":
+                                    print("revoking access keys..")
+                                    list_of_access_keys = users.list_access_keys(username)
+                                    if isinstance(list_of_access_keys, str):
+                                        print(list_of_access_keys)
+                                    elif list_of_access_keys:
+                                        for key in list_of_access_keys:
+                                            print(f"Deleting key: {key}")
+                                            key_deletion = users.delete_access_key(username=username, access_key_id=key)
+                                            print(key_deletion)
+
+
+                                elif credential_choice == "certificate":
+                                    print("revoking certificates")
+                                    list_of_certificates = users.list_certificate_ids(username)
+                                    if isinstance(list_of_certificates, str):
+                                        print(list_of_certificates)
+                                    elif list_of_certificates:
+                                        for cert in list_of_certificates:
+                                            print(f"Deleting certificate: {cert}")
+                                            cert_deletion = users.delete_signing_certificate(username=username, cert=cert)
+                                            print(cert_deletion)
+
+                                elif credential_choice == "public ssh key":
+                                    print("revoking public ssh keys")
+                                    list_of_ssh_keys = users.list_public_ssh_keys(username)
+                                    if isinstance(list_of_ssh_keys, str):
+                                        print(list_of_ssh_keys)
+                                    elif list_of_ssh_keys:
+                                        for key in list_of_ssh_keys:
+                                            print(f"Deleting SSH Keys: {key}")
+                                            key_deletion = users.delete_ssh_public_key(username=username, key_id=key)
+                                            print(key_deletion)
+                                elif credential_choice == "service credentials":
+                                    print("Revoking Service Credentials..")
+                                    list_of_creds = users.list_service_specific_creds(username)
+                                    if isinstance(list_of_creds, str):
+                                        print(list_of_creds)
+                                    elif list_of_creds:
+                                        for cred in list_of_creds:
+                                            cred_deletion = users.delete_service_specific_creds(username, cred=cred)
+                                            print(cred_deletion)
+                                elif credential_choice == "mfa devices":
+                                    print("Deactivating MFA devices..")
+                                    list_of_mfa = users.list_mfa_devices(username)
+                                    if isinstance(list_of_mfa, str):
+                                        print(list_of_mfa)
+                                    elif list_of_mfa:
+                                        for device in list_of_mfa:
+                                            device_deactivation = users.deactivate_mfa_device(username, serial_id=device)
+                                            print(device_deactivation)
+
+
                             elif users_choice == "10":
                                 print("Rotating Keys..")
 

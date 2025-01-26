@@ -312,6 +312,7 @@ def delete_signing_certificate(username, cert):
 def delete_ssh_public_key(username, key_id):
     try:
         iam_client.delete_ssh_public_key(UserName=username, SSHPublicKeyId=key_id)
+        return f"Deleted {key_id} from {username}"
     except iam_client.exceptions.NoSuchEntityException as e:
         return f"No such entity: {e}"
 
@@ -319,6 +320,7 @@ def delete_ssh_public_key(username, key_id):
 def delete_service_specific_creds(username, cred):
     try:
         iam_client.delete_service_specific_credential(UserName=username, ServiceSpecificCredentialId=cred)
+        return f"Deleted {cred} for {username}. "
     except iam_client.exceptions.NoSuchEntityException as e:
         return f"No such entity: {e}"
 
