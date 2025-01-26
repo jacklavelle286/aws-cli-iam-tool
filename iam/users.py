@@ -195,9 +195,6 @@ def list_mfa_devices(username):
         return f"{e}"
 
 
-def set_password_policy():
-    print("Setting for admin sect")
-
 
 def create_access_key(username):
     try:
@@ -208,8 +205,6 @@ def create_access_key(username):
         return access_key_id, secret_access_key
     except iam_client.exceptions.NoSuchEntityException as e:
         return {f"{e}"}
-
-
 
 
 def check_password_policy():
@@ -224,7 +219,6 @@ def check_password_policy():
             return response
     except iam_client.exceptions.NoSuchEntityException as e:
         return f"{e}"
-
 
 
 def check_login_profile(username):
