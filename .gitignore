@@ -12,6 +12,22 @@ __pycache__/
 dist/
 build/
 
-# scripts
+# IDE-specific files
+.idea/
+.vscode/
 
+# Output files and temporary files
+output_policies/
+template_files/__pycache__/
+template_files/*.pyc
+
+# Scripts
 *.sh
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Virtual environments
+venv/
+env/
