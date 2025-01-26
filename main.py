@@ -1,27 +1,24 @@
-from operator import indexOf
-
 from iam import iam_policy, users
 from iam import iam_client
 import getpass
+from simple_term_menu import TerminalMenu
 
 # Main Program Execution for iam_policy.py
 
 def main():
-    print(r"""
-            __          __   _____     _____              __  __     _____            _     _                        __          __
-     /\     \ \        / /  / ____|   |_   _|     /\     |  \/  |   |  __ \          | |   | |                       \ \        / /
-    /  \     \ \  /\  / /  | (___       | |      /  \    | \  / |   | |__) |  _   _  | |_  | |__     ___    _ __      \ \  /\  / /   _ __    __ _   _ __    _ __     ___   _ __
-   / /\ \     \ \/  \/ /    \___ \      | |     / /\ \   | |\/| |   |  ___/  | | | | | __| | '_ \   / _ \  | '_ \      \ \/  \/ /   | '__|  / _` | | '_ \  | '_ \   / _ \ | '__|
-  / ____ \     \  /\  /     ____) |    _| |_   / ____ \  | |  | |   | |      | |_| | | |_  | | | | | (_) | | | | |      \  /\  /    | |    | (_| | | |_) | | |_) | |  __/ | |
- /_/    \_\     \/  \/     |_____/    |_____| /_/    \_\ |_|  |_|   |_|       \__, |  \__| |_| |_|  \___/  |_| |_|       \/  \/     |_|     \__,_| | .__/  | .__/   \___| |_|
-                                                                               __/ |                                                               | |     | |
-                                                                              |___/                                                                |_|     |_|
-""")
+    main_menu_title = "Welcome to the PYAM CLI Tool"
+    main_menu_items = ["IAM Policies", "IAM Users", "Roles", "Groups", "Admin Panel", "Quit"]
+    main_menu_exit = False
 
-    print("Welcome to the PIAM Python Wrapper")
-    while True:
-        choice = input("Do you want to work with IAM Policies (1), Users (2), Roles (3) or Groups? (4) or Admin (5): (1,2,3, 4 or 5) or press 'q' to quit the programme. ").lower()
-        if choice == "1":
+    main_menu = TerminalMenu(
+        menu_entries=main_menu_items,
+        title=main_menu_title,
+        cycle_cursor=True,
+    )
+
+    while not main_menu_exit:
+        main_sel = main_menu.show()
+        if main_sel == 0:
             print("Building IAM Polices..")
             while True:
                 policy_choice = input("Select 1 to proceed with policy creation, 2 to list or delete local policy files, 3 to list policies within AWS or delete a specific policy within AWS, 4 to inspect a policy or 5 to return to the main menu: ").lower()
@@ -81,8 +78,7 @@ def main():
                     print("Returning to main menu..")
                     break
 
-
-        elif choice == '2':
+        elif main_sel == 1:
             print("Building IAM Users.... ")
             while True:
                 users_choice = input("Select 1 to proceed with IAM user creation, 2 to interact with an existing IAM User, 3 to list IAM users or 4 to delete a iam user. Press anything else to return to the main menu: \n")
@@ -350,8 +346,6 @@ def main():
                                         for device in mfa_devices_list:
                                             print(f"- {device}")
 
-# just need to do revoke creds and rotate keys then done
-
                             elif users_choice == "9":
                                 creds_options = ["access key", "certificate", "public ssh key", "service credentials","mfa devices"]
                                 creds_options_string = ", ".join(creds_options)
@@ -475,11 +469,19 @@ def main():
                 elif users_choice == "4":
                     user_to_delete = input("Enter the name of the user you want to delete: ").lower()
                     users.delete_iam_user(user_to_delete)
-        elif choice == "5":
+        elif main_sel == 2:
+            print("Building Roles")
+
+        elif main_sel == 3:
+            print("Building Groups")
+
+
+        elif main_sel == 4:
             print("Admin console...")
 
-        elif choice == "q":
+        elif main_sel == 5:
             print("Exiting the programme..")
+            main_menu_exit = True
             exit()
 
 if __name__ == "__main__":
