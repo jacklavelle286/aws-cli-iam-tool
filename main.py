@@ -3,8 +3,6 @@ from iam import iam_client
 import getpass
 from simple_term_menu import TerminalMenu
 
-# Main Program Execution for iam_policy.py
-
 def main():
     main_menu_title = "Welcome to the PYAM CLI Tool"
     main_menu_items = ["IAM Policies", "IAM Users", "Roles", "Groups", "Admin Panel", "Quit"]
@@ -19,14 +17,22 @@ def main():
     while not main_menu_exit:
         main_sel = main_menu.show()
         if main_sel == 0:
-            print("Building IAM Polices..")
-            while True:
-                policy_choice = input("Select 1 to proceed with policy creation, 2 to list or delete local policy files, 3 to list policies within AWS or delete a specific policy within AWS, 4 to inspect a policy or 5 to return to the main menu: ").lower()
-                if policy_choice == "1":
+            policy_menu_title = "IAM Policy Administration"
+            policy_menu_items = ["Policy Creation", "Delete Local Policy Files", "List or Delete Policy Within AWS", "Inspect Policy", "Return to main menu"]
+            policy_menu_exit = False
+
+            policy_menu = TerminalMenu(
+                menu_entries=policy_menu_items,
+                title=policy_menu_title,
+                cycle_cursor=True,
+            )
+            while not policy_menu_exit:
+                policy_menu_sel = policy_menu.show()
+                if policy_menu_sel == 0:
                     iam_policy.user_inputs = iam_policy.get_user_input_policy()
                     iam_policy.policy_file_name = iam_policy.create_iam_policy_file(iam_policy.user_inputs)
                     iam_policy.create_policy(iam_policy.policy_file_name)
-                elif policy_choice == "2":
+                elif policy_menu_sel == 1:
                     local_deletion_choice = input("Either name a local file by name to delete it, or select * to remove all local policy files: ")
                     policy_list = iam_policy.list_local_policy_files()
                     if local_deletion_choice != "*" and local_deletion_choice not in policy_list:
@@ -42,28 +48,27 @@ def main():
                     elif local_deletion_choice == "*":
                         print("Deleting all locally stored IAM policy files...")
                         iam_policy.delete_all_policies_locally()
-                        break
+
                     else:
                         print(f"Deleting {local_deletion_choice}...")
                         iam_policy.delete_policy_file(local_deletion_choice)
-                        break
-                elif policy_choice == "3":
+
+                elif policy_menu_sel == 2:
                     print("Listing or deleting policies in AWS...")
-                    while True:
-                        print("Which policy do you want to delete within AWS?\n")
-                        print("listing policies in AWS...")
-                        policy_list = iam_policy.list_policies_in_aws(arn=False, policy_type='Local')
-                        for item in policy_list:
-                            print(item)
-                        policy_choice = input("Type which policy you would like to delete in AWS (Caution!! This will detach from any users, groups or roles currently using this policy and delete it: ")
-                        if policy_choice not in policy_list:
-                            print("policy is not found in AWS. ")
-                            break
-                        else:
-                            iam_policy.delete_policy_remotely(policy_choice)
-                            print(f"deleting {policy_choice}")
-                            break
-                elif policy_choice == "4":
+                    print("Which policy do you want to delete within AWS?\n")
+                    print("listing policies in AWS...")
+                    policy_list = iam_policy.list_policies_in_aws(arn=False, policy_type='Local')
+                    for item in policy_list:
+                        print(item)
+                    policy_choice = input("Type which policy you would like to delete in AWS (Caution!! This will detach from any users, groups or roles currently using this policy and delete it: ")
+                    if policy_choice not in policy_list:
+                        print("policy is not found in AWS. ")
+
+                    else:
+                        iam_policy.delete_policy_remotely(policy_choice)
+                        print(f"deleting {policy_choice}")
+
+                elif policy_menu_sel == 3:
                     print("Inpsecting policy...")
                     inspect_policy = input("Choose a policy to inspect: ")
                     policy_object = iam_policy.describe_policy(inspect_policy)
@@ -73,19 +78,27 @@ def main():
                         print("Policy document not found.")
                     else:
                         print(policy_object)
-                    break
-                elif policy_choice == "5":
+
+                elif policy_menu_sel == 4:
                     print("Returning to main menu..")
-                    break
+                    policy_menu_exit = True
+
+
 
         elif main_sel == 1:
-            print("Building IAM Users.... ")
-            while True:
-                users_choice = input("Select 1 to proceed with IAM user creation, 2 to interact with an existing IAM User, 3 to list IAM users or 4 to delete a iam user. Press anything else to return to the main menu: \n")
-                if users_choice not in ['1', '2', '3', '4']:
-                    print("Exiting to main menu.. ")
-                    break
-                elif users_choice == "1":
+            user_menu_title = "IAM User Administration"
+            user_menu_items = ["IAM User Creation", "Interact with IAM User", "List IAM Users", "Delete IAM User", "Return to Main Menu"]
+            user_menu_exit = False
+
+            user_menu = TerminalMenu(
+                menu_entries=user_menu_items,
+                title=user_menu_title,
+                cycle_cursor=True,
+            )
+
+            while not user_menu_exit:
+                user_sel = user_menu.show()
+                if user_sel == 0:
                     print("Creating user..")
                     username = input("Enter a username for your user: ")
                     iam_user_creation = users.create_iam_user(username)
@@ -137,7 +150,7 @@ def main():
                             else:
                                 print("Policy creation failed; cannot attach.")
 
-                elif users_choice == "2":
+                elif user_sel == 1:
                     print("interacting with iam users..")
                     username = input("Enter the name of the IAM user you'd like to work with: ")
                     print(f"You chose {username}")
@@ -445,17 +458,21 @@ def main():
 
 
 
+
+
                             elif users_choice == "11":
                                 print(f"Deleting {username}...\n")
                                 iam_user_delete_response = users.delete_iam_user(username)
-                                print(iam_user_delete_response)
-                                break
+                                if isinstance(iam_user_delete_response, str):  # Error or message response
+                                    print(iam_user_delete_response)
+                                else:
+                                    print("User deleted successfully.")
 
-                            else:
-                                print("Exiting.")
-                                break
 
-                elif users_choice == "3":
+
+
+
+                elif user_sel == 2:
                     list_of_users = users.list_iam_users()
                     if isinstance(list_of_users, str):
                         print(list_of_users)
@@ -466,9 +483,15 @@ def main():
 
 
 
-                elif users_choice == "4":
+
+                elif user_sel == 3:
                     user_to_delete = input("Enter the name of the user you want to delete: ").lower()
-                    users.delete_iam_user(user_to_delete)
+                    iam_user_delete_response = users.delete_iam_user(user_to_delete)
+                    if isinstance(iam_user_delete_response, str):  # Error or message response
+                        print(iam_user_delete_response)
+                    else:
+                        print("User deleted successfully.")
+
         elif main_sel == 2:
             print("Building Roles")
 

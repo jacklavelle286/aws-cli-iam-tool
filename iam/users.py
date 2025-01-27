@@ -390,12 +390,15 @@ def delete_user(username):
         return f"Service failure: {e}"
 
 
-
 def delete_iam_user(username):
-    # checking if user is valid:
+    # Check if the user is valid:
     list_of_users = list_iam_users()
     if not list_of_users:
-        print(list_of_users)
+        return "No users found in the account."
+
+    if username not in list_of_users:
+        return f"User '{username}' not found."
+
     print("Deleting inline policies...\n")
     # list attached policies
     user_inline_policy_list = list_attached_inline_user_policies(username=username)
