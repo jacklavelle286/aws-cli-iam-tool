@@ -17,7 +17,6 @@ build/
 .vscode/
 
 # Output files and temporary files
-output_policies/
 template_files/__pycache__/
 template_files/*.pyc
 
