@@ -160,320 +160,323 @@ def main():
                         for user in current_list_of_users:
                             print(f"- {user}")
                     else:
-                        while True:
-                            interact_user_menu_title = "Interaction with an IAM User"
-                            interact_user_menu_items = [f"List Policies attached to {username}", "List Groups {username} is in", f"Add {username} to IAM Groups", f"Remove {username} from a Group", f"Add Policies to {username}", f"Remove Policies from {username}", f"Change Password for {username}", f"List credentials for {username}", f"Revoke credentials for {username}", f"Rotate access keys for {username}", f"Delete {username}", "Return to IAM User Menu"]
-                            interact_user_menu_exit = False
+                        interact_user_menu_title = "Interaction with an IAM User"
+                        interact_user_menu_items = [f"List Policies attached to {username}", f"List Groups {username} is in", f"Add {username} to IAM Groups", f"Remove {username} from a Group", f"Add Policies to {username}", f"Remove Policies from {username}", f"Change Password for {username}", f"List credentials for {username}", f"Revoke credentials for {username}", f"Rotate access keys for {username}", f"Delete {username}", "Return to IAM User Menu"]
+                        interact_user_menu_exit = False
 
-                            interact_user = TerminalMenu(
-                                menu_entries=interact_user_menu_items,
-                                title=interact_user_menu_title,
-                                cycle_cursor=True,
-                            )
-                            while not interact_user_menu_exit:
-                                interact_user_sel = user_menu.show()
-                                if interact_user_sel == 0:
-                                    print("Listing IAM attached policies...")
-                                    list_of_managed_policies = users.list_attached_managed_user_policies(username=username)
+                        interact_user = TerminalMenu(
+                            menu_entries=interact_user_menu_items,
+                            title=interact_user_menu_title,
+                            cycle_cursor=True,
+                        )
+                        while not interact_user_menu_exit:
+                            interact_user_sel = interact_user.show()
+                            if interact_user_sel == 0:
+                                print("Listing IAM attached policies...")
+                                list_of_managed_policies = users.list_attached_managed_user_policies(username=username)
 
+                                if isinstance(list_of_managed_policies, str):
+                                    print(list_of_managed_policies)
+                                elif list_of_managed_policies:
+                                    print("\nList of Managed Policies:\n")
+                                    for m_policy in list_of_managed_policies:
+                                        print(f"- {m_policy}")
+
+                                print("Listing IAM inline policies...")
+                                list_of_inline_policies = users.list_attached_inline_user_policies(username=username)
+
+                                if isinstance(list_of_inline_policies, str):
+                                    print(list_of_inline_policies)
+                                elif list_of_inline_policies:
+                                    for i_policy in list_of_inline_policies:
+                                        print(f"- {i_policy}")
+
+
+                                inspect_policy = input("Do you want to inspect a policy? enter a name and you can view the policy (note doesn't work for inline policies currently): ")
+                                policy_object = iam_policy.describe_policy(inspect_policy)
+                                if policy_object is None:
+                                    print("Error when fetching policy document document. ")
+                                elif not policy_object:
+                                    print("Policy document not found.")
+                                else:
+                                    print(policy_object)
+
+
+                            elif interact_user_sel == 1:
+                                print("listing groups")
+                                list_of_groups = users.list_groups_for_user(username)
+                                if isinstance(list_of_groups, str):
+                                    print(list_of_groups)
+                                elif list_of_groups:
+                                    print("Groups: ")
+                                    for group in list_of_groups:
+                                        print(f"-{group}")
+
+                            elif interact_user_sel == 2:
+                                print("Adding to group...")
+
+
+
+                            elif interact_user_sel == 3:
+                                print(f"Removing {username} from groups....")
+                                # check groups user is in
+                                groups_for_user = users.list_groups_for_user(username)
+                                if isinstance(groups_for_user, str):
+                                    print(groups_for_user)
+                                elif groups_for_user:
+                                    for group in groups_for_user:
+                                        print(f"Removing {username} from {group}")
+
+
+                            elif interact_user_sel == 4:
+                                print("Adding policies")
+                                attach_choice = input("Enter 'attach' to specify a valid ARN, or type 'create' to create a new policy: ")
+                                if attach_choice.lower() == "attach":
+                                    arn = input("Enter a valid ARN: ")
+                                    valid_arns = iam_policy.list_policies_in_aws(arn=True, policy_type='All')
+                                    print(f"Checking against all {len(valid_arns)} policies in your account to see if it exists...")
+                                    if arn not in valid_arns:
+                                        print("Invalid ARN: doesn't exist within your account.")
+                                    else:
+                                        is_attached_already = users.list_attached_managed_user_policies(
+                                            username=username)
+                                        policy_name = arn.split('/')[-1]
+                                        # Check if policy name is in the list of already attached policies
+                                        if policy_name in is_attached_already:
+                                            print("Policy already attached!")
+                                            print(f"Currently attached are as follow policies: ")
+                                            for item in is_attached_already:
+                                                print(f"- {item}")
+                                        else:
+                                            attach_attempt = users.attach_user_policy(username=username, policy_arn=arn)
+                                            print(attach_attempt)
+                                elif attach_choice.lower() == "create":
+                                    print("Creating new policy... ")
+                                    iam_policy.user_inputs = iam_policy.get_user_input_policy()
+                                    iam_policy.policy_file_name = iam_policy.create_iam_policy_file(
+                                        iam_policy.user_inputs)
+                                    created_policy = iam_policy.create_policy(iam_policy.policy_file_name)
+                                    if created_policy:
+                                        policy_arn = created_policy  # ARN returned by create_policy
+                                        print(f"Attaching {policy_arn}...")
+                                        attach_response = users.attach_user_policy(username=username,
+                                                                                   policy_arn=policy_arn)
+                                        print(attach_response)
+                                    else:
+                                        print("Policy creation failed; cannot attach.")
+
+
+
+
+                            elif interact_user_sel == 5:
+                                print("Removing policies")
+                                all_policies = input("If you want to delete all policies type 'all' or type 'arn' to input a specific arn: ")
+                                if all_policies.lower() == "all":
+                                    # detach managed polices
+                                    list_of_managed_policies = users.list_attached_managed_user_policies(username)
                                     if isinstance(list_of_managed_policies, str):
                                         print(list_of_managed_policies)
                                     elif list_of_managed_policies:
-                                        print("\nList of Managed Policies:\n")
-                                        for m_policy in list_of_managed_policies:
-                                            print(f"- {m_policy}")
-
-                                    print("Listing IAM inline policies...")
+                                        for policy in list_of_managed_policies:
+                                            # get arn of each policy
+                                            policy_arn = iam_policy.get_iam_policy_arn(new_policy=policy)
+                                            users.detach_user_policy(username=username, policy_arn=policy_arn)
+                                            print(f"Detached {policy_arn} from {username}")
+                                    # delete inline policies
+                                    # for policy in inline policy, call delete user policy function
                                     list_of_inline_policies = users.list_attached_inline_user_policies(username=username)
-
                                     if isinstance(list_of_inline_policies, str):
                                         print(list_of_inline_policies)
                                     elif list_of_inline_policies:
-                                        for i_policy in list_of_inline_policies:
-                                            print(f"- {i_policy}")
+                                        for policy in list_of_inline_policies:
+                                            print(f"Deleting inline policy: {policy}")
+                                            delete_inline_policies = users.delete_user_policy(username=username, policy_name=policy)
+                                            if delete_inline_policies:
+                                                print(delete_inline_policies)
 
 
-                                    inspect_policy = input("Do you want to inspect a policy? enter a name and you can view the policy (note doesn't work for inline policies currently): ")
-                                    policy_object = iam_policy.describe_policy(inspect_policy)
-                                    if policy_object is None:
-                                        print("Error when fetching policy document document. ")
-                                    elif not policy_object:
-                                        print("Policy document not found.")
-                                    else:
-                                        print(policy_object)
-
-
-                                elif interact_user_sel == 1:
-                                    print("listing groups")
-                                    list_of_groups = users.list_groups_for_user(username)
-                                    if isinstance(list_of_groups, str):
-                                        print(list_of_groups)
-                                    elif list_of_groups:
-                                        print("Groups: ")
-                                        for group in list_of_groups:
-                                            print(f"-{group}")
-
-                                elif interact_user_sel == 2:
-                                    print("Adding to group...")
+                                elif all_policies.lower() == "arn":
+                                    specific_arn = input("List a specific policy arn: ")
+                                    list_of_policies_attached = users.list_attached_managed_user_policies(username) # returns non arns
+                                    for policy in list_of_policies_attached:
+                                        policy_arn = iam_policy.get_iam_policy_arn(new_policy=policy)
+                                        if policy_arn == specific_arn:
+                                            detach_result = users.detach_user_policy(username=username, policy_arn=policy_arn)
+                                            print(detach_result)
 
 
 
-                                elif interact_user_sel == 3:
-                                    print(f"Removing {username} from groups....")
-                                    # check groups user is in
-                                    groups_for_user = users.list_groups_for_user(username)
-                                    if isinstance(groups_for_user, str):
-                                        print(groups_for_user)
-                                    elif groups_for_user:
-                                        for group in groups_for_user:
-                                            print(f"Removing {username} from {group}")
+                            elif interact_user_sel == 6:
+                                print("Changing password")
+                                password = getpass.getpass("Enter your password: ")
+                                change_password = users.change_password(username, password)
+                                print(change_password)
 
+                            elif interact_user_sel == 7:
+                                print("listing credentials...")
+                                creds_options = ["access key", "certificate", "public ssh key", "service credentials","mfa devices"]
+                                creds_options_string = ", ".join(creds_options)
+                                creds_choice = input(f"Which type of credentials would you like to list? You can choose from the following: {creds_options_string}: ")
+                                if creds_choice.lower() not in creds_options:
+                                    print(f"You chose {creds_choice}: Invalid option. ")
+                                elif creds_choice.lower() == "access key":
+                                    print("listing access keys..")
+                                    access_keys = users.list_access_keys(username)
+                                    if isinstance(access_keys, str):
+                                        print(access_keys)
+                                    elif access_keys:
+                                        print("Access keys: ")
+                                        for key in access_keys:
+                                            print(f"- {key}")
+                                elif creds_choice == "certificate":
+                                    print("listing certificates..")
+                                    certs_list = users.list_certificate_ids(username)
+                                    if isinstance(certs_list, str):
+                                        print(certs_list)
+                                    elif certs_list:
+                                        print("Certificates attached: ")
+                                        for cert in certs_list:
+                                            print(f"- {cert}")
+                                elif creds_choice == "public ssh key":
+                                    print("listing SSH Keys.. ")
+                                    ssh_key_list = users.list_public_ssh_keys(username)
+                                    if isinstance(ssh_key_list, str):
+                                        print(ssh_key_list)
+                                    elif ssh_key_list:
+                                        print("list Of SSH Keys: ")
+                                        for key in ssh_key_list:
+                                            print(f"- {key}")
+                                elif creds_choice == "service credentials":
+                                    print("listing Service credentials.. ")
+                                    service_cred_list = users.list_service_specific_creds(username)
+                                    if isinstance(service_cred_list, str):
+                                        print(service_cred_list)
+                                    elif service_cred_list:
+                                        print("List of service specific creds: ")
+                                        for cred in service_cred_list:
+                                            print(f"- {cred}")
+                                elif creds_choice == "mfa devices":
+                                    print("listing mfa devices. ")
+                                    mfa_devices_list = users.list_mfa_devices(username)
+                                    if isinstance(mfa_devices_list, str):
+                                        print(mfa_devices_list)
+                                    elif mfa_devices_list:
+                                        print("List of MFA Devices: ")
+                                        for device in mfa_devices_list:
+                                            print(f"- {device}")
 
-                                elif interact_user_sel == 4:
-                                    print("Adding policies")
-                                    attach_choice = input("Enter 'attach' to specify a valid ARN, or type 'create' to create a new policy: ")
-                                    if attach_choice.lower() == "attach":
-                                        arn = input("Enter a valid ARN: ")
-                                        valid_arns = iam_policy.list_policies_in_aws(arn=True, policy_type='All')
-                                        print(f"Checking against all {len(valid_arns)} policies in your account to see if it exists...")
-                                        if arn not in valid_arns:
-                                            print("Invalid ARN: doesn't exist within your account.")
-                                        else:
-                                            is_attached_already = users.list_attached_managed_user_policies(
-                                                username=username)
-                                            policy_name = arn.split('/')[-1]
-                                            # Check if policy name is in the list of already attached policies
-                                            if policy_name in is_attached_already:
-                                                print("Policy already attached!")
-                                                print(f"Currently attached are as follow policies: ")
-                                                for item in is_attached_already:
-                                                    print(f"- {item}")
-                                            else:
-                                                attach_attempt = users.attach_user_policy(username=username, policy_arn=arn)
-                                                print(attach_attempt)
-                                    elif attach_choice.lower() == "create":
-                                        print("Creating new policy... ")
-                                        iam_policy.user_inputs = iam_policy.get_user_input_policy()
-                                        iam_policy.policy_file_name = iam_policy.create_iam_policy_file(
-                                            iam_policy.user_inputs)
-                                        created_policy = iam_policy.create_policy(iam_policy.policy_file_name)
-                                        if created_policy:
-                                            policy_arn = created_policy  # ARN returned by create_policy
-                                            print(f"Attaching {policy_arn}...")
-                                            attach_response = users.attach_user_policy(username=username,
-                                                                                       policy_arn=policy_arn)
-                                            print(attach_response)
-                                        else:
-                                            print("Policy creation failed; cannot attach.")
-
-
-
-
-                                elif interact_user_sel == 5:
-                                    print("Removing policies")
-                                    all_policies = input("If you want to delete all policies type 'all' or type 'arn' to input a specific arn: ")
-                                    if all_policies.lower() == "all":
-                                        # detach managed polices
-                                        list_of_managed_policies = users.list_attached_managed_user_policies(username)
-                                        if isinstance(list_of_managed_policies, str):
-                                            print(list_of_managed_policies)
-                                        elif list_of_managed_policies:
-                                            for policy in list_of_managed_policies:
-                                                # get arn of each policy
-                                                policy_arn = iam_policy.get_iam_policy_arn(new_policy=policy)
-                                                users.detach_user_policy(username=username, policy_arn=policy_arn)
-                                                print(f"Detached {policy_arn} from {username}")
-                                        # delete inline policies
-                                        # for policy in inline policy, call delete user policy function
-                                        list_of_inline_policies = users.list_attached_inline_user_policies(username=username)
-                                        if isinstance(list_of_inline_policies, str):
-                                            print(list_of_inline_policies)
-                                        elif list_of_inline_policies:
-                                            for policy in list_of_inline_policies:
-                                                print(f"Deleting inline policy: {policy}")
-                                                delete_inline_policies = users.delete_user_policy(username=username, policy_name=policy)
-                                                if delete_inline_policies:
-                                                    print(delete_inline_policies)
-
-
-                                    elif all_policies.lower() == "arn":
-                                        specific_arn = input("List a specific policy arn: ")
-                                        list_of_policies_attached = users.list_attached_managed_user_policies(username) # returns non arns
-                                        for policy in list_of_policies_attached:
-                                            policy_arn = iam_policy.get_iam_policy_arn(new_policy=policy)
-                                            if policy_arn == specific_arn:
-                                                detach_result = users.detach_user_policy(username=username, policy_arn=policy_arn)
-                                                print(detach_result)
-
-
-
-                                elif interact_user_sel == 6:
-                                    print("Changing password")
-                                    password = getpass.getpass("Enter your password: ")
-                                    change_password = users.change_password(username, password)
-                                    print(change_password)
-
-                                elif interact_user_sel == 7:
-                                    print("listing credentials...")
-                                    creds_options = ["access key", "certificate", "public ssh key", "service credentials","mfa devices"]
-                                    creds_options_string = ", ".join(creds_options)
-                                    creds_choice = input(f"Which type of credentials would you like to list? You can choose from the following: {creds_options_string}: ")
-                                    if creds_choice.lower() not in creds_options:
-                                        print(f"You chose {creds_choice}: Invalid option. ")
-                                    elif creds_choice.lower() == "access key":
-                                        print("listing access keys..")
-                                        access_keys = users.list_access_keys(username)
-                                        if isinstance(access_keys, str):
-                                            print(access_keys)
-                                        elif access_keys:
-                                            print("Access keys: ")
-                                            for key in access_keys:
-                                                print(f"- {key}")
-                                    elif creds_choice == "certificate":
-                                        print("listing certificates..")
-                                        certs_list = users.list_certificate_ids(username)
-                                        if isinstance(certs_list, str):
-                                            print(certs_list)
-                                        elif certs_list:
-                                            print("Certificates attached: ")
-                                            for cert in certs_list:
-                                                print(f"- {cert}")
-                                    elif creds_choice == "public ssh key":
-                                        print("listing SSH Keys.. ")
-                                        ssh_key_list = users.list_public_ssh_keys(username)
-                                        if isinstance(ssh_key_list, str):
-                                            print(ssh_key_list)
-                                        elif ssh_key_list:
-                                            print("list Of SSH Keys: ")
-                                            for key in ssh_key_list:
-                                                print(f"- {key}")
-                                    elif creds_choice == "service credentials":
-                                        print("listing Service credentials.. ")
-                                        service_cred_list = users.list_service_specific_creds(username)
-                                        if isinstance(service_cred_list, str):
-                                            print(service_cred_list)
-                                        elif service_cred_list:
-                                            print("List of service specific creds: ")
-                                            for cred in service_cred_list:
-                                                print(f"- {cred}")
-                                    elif creds_choice == "mfa devices":
-                                        print("listing mfa devices. ")
-                                        mfa_devices_list = users.list_mfa_devices(username)
-                                        if isinstance(mfa_devices_list, str):
-                                            print(mfa_devices_list)
-                                        elif mfa_devices_list:
-                                            print("List of MFA Devices: ")
-                                            for device in mfa_devices_list:
-                                                print(f"- {device}")
-
-                                elif interact_user_sel == 8:
-                                    creds_options = ["access key", "certificate", "public ssh key", "service credentials","mfa devices"]
-                                    creds_options_string = ", ".join(creds_options)
-                                    credential_choice = input(f"Which type of credentials do you want to revoke? You can choose from the following: {creds_options_string}: ")
-                                    if credential_choice not in creds_options:
-                                        print("Invalid input.")
-                                    elif credential_choice == "access key":
-                                        print("revoking access keys..")
-                                        list_of_access_keys = users.list_access_keys(username)
-                                        if isinstance(list_of_access_keys, str):
-                                            print(list_of_access_keys)
-                                        elif list_of_access_keys:
-                                            for key in list_of_access_keys:
-                                                print(f"Deleting key: {key}")
-                                                key_deletion = users.delete_access_key(username=username, access_key_id=key)
-                                                print(key_deletion)
-
-
-                                    elif credential_choice == "certificate":
-                                        print("revoking certificates")
-                                        list_of_certificates = users.list_certificate_ids(username)
-                                        if isinstance(list_of_certificates, str):
-                                            print(list_of_certificates)
-                                        elif list_of_certificates:
-                                            for cert in list_of_certificates:
-                                                print(f"Deleting certificate: {cert}")
-                                                cert_deletion = users.delete_signing_certificate(username=username, cert=cert)
-                                                print(cert_deletion)
-
-                                    elif credential_choice == "public ssh key":
-                                        print("revoking public ssh keys")
-                                        list_of_ssh_keys = users.list_public_ssh_keys(username)
-                                        if isinstance(list_of_ssh_keys, str):
-                                            print(list_of_ssh_keys)
-                                        elif list_of_ssh_keys:
-                                            for key in list_of_ssh_keys:
-                                                print(f"Deleting SSH Keys: {key}")
-                                                key_deletion = users.delete_ssh_public_key(username=username, key_id=key)
-                                                print(key_deletion)
-                                    elif credential_choice == "service credentials":
-                                        print("Revoking Service Credentials..")
-                                        list_of_creds = users.list_service_specific_creds(username)
-                                        if isinstance(list_of_creds, str):
-                                            print(list_of_creds)
-                                        elif list_of_creds:
-                                            for cred in list_of_creds:
-                                                cred_deletion = users.delete_service_specific_creds(username, cred=cred)
-                                                print(cred_deletion)
-                                    elif credential_choice == "mfa devices":
-                                        print("Deactivating MFA devices..")
-                                        list_of_mfa = users.list_mfa_devices(username)
-                                        if isinstance(list_of_mfa, str):
-                                            print(list_of_mfa)
-                                        elif list_of_mfa:
-                                            for device in list_of_mfa:
-                                                device_deactivation = users.deactivate_mfa_device(username, serial_id=device)
-                                                print(device_deactivation)
-
-
-                                elif interact_user_sel == 9:
-                                    print("Rotating Keys..")
-                                    # list keys
+                            elif interact_user_sel == 8:
+                                creds_options = ["access key", "certificate", "public ssh key", "service credentials","mfa devices"]
+                                creds_options_string = ", ".join(creds_options)
+                                credential_choice = input(f"Which type of credentials do you want to revoke? You can choose from the following: {creds_options_string}: ")
+                                if credential_choice not in creds_options:
+                                    print("Invalid input.")
+                                elif credential_choice == "access key":
+                                    print("revoking access keys..")
                                     list_of_access_keys = users.list_access_keys(username)
                                     if isinstance(list_of_access_keys, str):
                                         print(list_of_access_keys)
                                     elif list_of_access_keys:
-                                        print("List of keys: ")
-                                        length_of_keys = len(list_of_access_keys) + 1
                                         for key in list_of_access_keys:
-                                            print(f"- {key}")
-                                        key_list_string = ", ".join(list_of_access_keys)
-                                        which_key_rotate = int(input(f"Which key would you like to rotate? {key_list_string} \n Choose the corresponding number of the key in the list to rotate it. ")) -1
-                                        length_list = [item for item in range(length_of_keys)]
-                                        if which_key_rotate not in range(0, len(length_list) -1):
-                                            print("Invalid option. ")
-                                        else:
-                                            # get access key from index
-                                            chosen_key = list_of_access_keys[which_key_rotate]
-                                            print(f"You have chosen: {chosen_key}.")
-                                            revoke = input(f"Do you want to revoke this key? {chosen_key} \n Yes or anything else to exit. ")
-                                            if revoke != "yes":
-                                                print("Aborting key deletion..")
-                                            elif revoke == "yes":
-                                                print(f"Revoking {chosen_key}..")
-                                                revoke_key = users.delete_access_key(username, access_key_id=chosen_key)
-                                                print(revoke_key)
-                                        # create new key and expose access key id and secret access
-                                                create = input("Do you want to create the new key?: (yes or anything else to exit) ")
-                                                if create != "yes":
-                                                    print("Aborting key creation..")
-                                                elif create == "yes":
-                                                    print("WARNING! Keep these values secure as it is highly privileged information. ")
-                                                    new_access_key_id, new_secret_access_key = users.create_access_key(
-                                                        username)
-                                                    print(f"Access Key ID: {new_access_key_id[0]}")
-                                                    print(f"Secret Access Key: {new_secret_access_key[0]}")
+                                            print(f"Deleting key: {key}")
+                                            key_deletion = users.delete_access_key(username=username, access_key_id=key)
+                                            print(key_deletion)
 
 
+                                elif credential_choice == "certificate":
+                                    print("revoking certificates")
+                                    list_of_certificates = users.list_certificate_ids(username)
+                                    if isinstance(list_of_certificates, str):
+                                        print(list_of_certificates)
+                                    elif list_of_certificates:
+                                        for cert in list_of_certificates:
+                                            print(f"Deleting certificate: {cert}")
+                                            cert_deletion = users.delete_signing_certificate(username=username, cert=cert)
+                                            print(cert_deletion)
+
+                                elif credential_choice == "public ssh key":
+                                    print("revoking public ssh keys")
+                                    list_of_ssh_keys = users.list_public_ssh_keys(username)
+                                    if isinstance(list_of_ssh_keys, str):
+                                        print(list_of_ssh_keys)
+                                    elif list_of_ssh_keys:
+                                        for key in list_of_ssh_keys:
+                                            print(f"Deleting SSH Keys: {key}")
+                                            key_deletion = users.delete_ssh_public_key(username=username, key_id=key)
+                                            print(key_deletion)
+                                elif credential_choice == "service credentials":
+                                    print("Revoking Service Credentials..")
+                                    list_of_creds = users.list_service_specific_creds(username)
+                                    if isinstance(list_of_creds, str):
+                                        print(list_of_creds)
+                                    elif list_of_creds:
+                                        for cred in list_of_creds:
+                                            cred_deletion = users.delete_service_specific_creds(username, cred=cred)
+                                            print(cred_deletion)
+                                elif credential_choice == "mfa devices":
+                                    print("Deactivating MFA devices..")
+                                    list_of_mfa = users.list_mfa_devices(username)
+                                    if isinstance(list_of_mfa, str):
+                                        print(list_of_mfa)
+                                    elif list_of_mfa:
+                                        for device in list_of_mfa:
+                                            device_deactivation = users.deactivate_mfa_device(username, serial_id=device)
+                                            print(device_deactivation)
 
 
-
-                                elif interact_user_sel == 10:
-                                    print(f"Deleting {username}...\n")
-                                    iam_user_delete_response = users.delete_iam_user(username)
-                                    if isinstance(iam_user_delete_response, str):  # Error or message response
-                                        print(iam_user_delete_response)
+                            elif interact_user_sel == 9:
+                                print("Rotating Keys..")
+                                # list keys
+                                list_of_access_keys = users.list_access_keys(username)
+                                if isinstance(list_of_access_keys, str):
+                                    print(list_of_access_keys)
+                                elif list_of_access_keys:
+                                    print("List of keys: ")
+                                    length_of_keys = len(list_of_access_keys) + 1
+                                    for key in list_of_access_keys:
+                                        print(f"- {key}")
+                                    key_list_string = ", ".join(list_of_access_keys)
+                                    which_key_rotate = int(input(f"Which key would you like to rotate? {key_list_string} \n Choose the corresponding number of the key in the list to rotate it. ")) -1
+                                    length_list = [item for item in range(length_of_keys)]
+                                    if which_key_rotate not in range(0, len(length_list) -1):
+                                        print("Invalid option. ")
                                     else:
-                                        print("User deleted successfully.")
+                                        # get access key from index
+                                        chosen_key = list_of_access_keys[which_key_rotate]
+                                        print(f"You have chosen: {chosen_key}.")
+                                        revoke = input(f"Do you want to revoke this key? {chosen_key} \n Yes or anything else to exit. ")
+                                        if revoke != "yes":
+                                            print("Aborting key deletion..")
+                                        elif revoke == "yes":
+                                            print(f"Revoking {chosen_key}..")
+                                            revoke_key = users.delete_access_key(username, access_key_id=chosen_key)
+                                            print(revoke_key)
+                                    # create new key and expose access key id and secret access
+                                            create = input("Do you want to create the new key?: (yes or anything else to exit) ")
+                                            if create != "yes":
+                                                print("Aborting key creation..")
+                                            elif create == "yes":
+                                                print("WARNING! Keep these values secure as it is highly privileged information. ")
+                                                new_access_key_id, new_secret_access_key = users.create_access_key(
+                                                    username)
+                                                print(f"Access Key ID: {new_access_key_id[0]}")
+                                                print(f"Secret Access Key: {new_secret_access_key[0]}")
+
+
+
+
+
+                            elif interact_user_sel == 10:
+                                print(f"Deleting {username}...\n")
+                                iam_user_delete_response = users.delete_iam_user(username)
+                                interact_user_menu_exit = True
+                                if isinstance(iam_user_delete_response, str):  # Error or message response
+                                    print(iam_user_delete_response)
+                                else:
+                                    print("User deleted successfully.")
+
+                            elif interact_user_sel == 11:
+                                interact_user_menu_exit = True
 
 
 
@@ -498,6 +501,10 @@ def main():
                         print(iam_user_delete_response)
                     else:
                         print("User deleted successfully.")
+
+
+                elif user_sel == 4:
+                    user_menu_exit = True
 
         elif main_sel == 2:
             print("Building Roles")

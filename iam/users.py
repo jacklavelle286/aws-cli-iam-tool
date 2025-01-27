@@ -248,10 +248,8 @@ def change_password(username,password):
         is_login_profile = check_login_profile(username)
         if not is_login_profile:
             login_profile = create_login_profile(username=username, password=password)
-            print(login_profile)
         else:
             update_login_profile = iam_client.update_login_profile(UserName=username,Password=password)
-            print(update_login_profile)
         return f"Password Successfully updated for {username}"
 
 
