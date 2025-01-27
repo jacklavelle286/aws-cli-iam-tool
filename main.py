@@ -463,9 +463,6 @@ def main():
                                                 print(f"Secret Access Key: {new_secret_access_key[0]}")
 
 
-
-
-
                             elif interact_user_sel == 10:
                                 print(f"Deleting {username}...\n")
                                 iam_user_delete_response = users.delete_iam_user(username)
@@ -479,9 +476,6 @@ def main():
                                 interact_user_menu_exit = True
 
 
-
-
-
                 elif user_sel == 2:
                     list_of_users = users.list_iam_users()
                     if isinstance(list_of_users, str):
@@ -490,8 +484,6 @@ def main():
                         print("List of users in your accounts: ")
                         for user in list_of_users:
                             print(f"-{user}")
-
-
 
 
                 elif user_sel == 3:
@@ -507,14 +499,109 @@ def main():
                     user_menu_exit = True
 
         elif main_sel == 2:
-            print("Building Roles")
+            roles_menu_title = "IAM Role Administration"
+            roles_menu_items = [f"Create Role", "List Roles", "Edit Trust Policy", "Create Trust Policy", "Attach Policy To Role", "Detach Policy From Role", "Delete Role", "Disable/Enable Role", "Return to Main Menu"]
+            role_menu_exit = False
+            role_menu = TerminalMenu(
+                menu_entries=roles_menu_items,
+                title=roles_menu_title,
+                cycle_cursor=True,
+            )
+            while not role_menu_exit:
+                role_sel = role_menu.show()
+                if role_sel == 0:
+                    print("Create Role")
+                elif role_sel == 1:
+                    print("List Roles")
+                elif role_sel == 2:
+                    print("Edit Trust Policy")
+                elif role_sel == 3:
+                    print("Create Trust Policy")
+                elif role_sel == 4:
+                    print("Attach Policy To Role")
+                elif role_sel == 5:
+                    print("Detach Policy From Role")
+                elif role_sel == 6:
+                    print("Delete Role")
+                elif role_sel == 7:
+                    print("Disable/Enable Role")
+                elif role_sel == 8:
+                    role_menu_exit = True
+
 
         elif main_sel == 3:
-            print("Building Groups")
+            groups_menu_title = "IAM Group Administration"
+            groups_menu_items = [f"Create Group", "List Groups", "Attach Policy To Group", "Detach Policy From Group", "List Policies Attached to Group", "List Users in Group", "Add User from Group", "Remove User from Group", "Delete Group", "Return to Main Menu"]
+            groups_menu_exit = False
+            groups_menu = TerminalMenu(
+                menu_entries=groups_menu_items,
+                title=groups_menu_title,
+                cycle_cursor=True,
+            )
+            while not groups_menu_exit:
+                group_sel = groups_menu.show()
+                if group_sel == 0:
+                    print("Create Group")
+                elif group_sel == 1:
+                    print("List Groups")
+                elif group_sel == 2:
+                    print("Attach Policy To Group")
+                elif group_sel == 3:
+                    print("Detach Policy From Group")
+                elif group_sel == 4:
+                    print("List Policies Attached to Group")
+                elif group_sel == 5:
+                    print("List Users in Group")
+                elif group_sel == 6:
+                    print("Add User to Group")
+                elif group_sel == 7:
+                    print("Remove User from Group")
+                elif group_sel == 8:
+                    print("Delete Group")
+                elif group_sel == 9:
+                    print("Returning to Main Menu...")
+                    groups_menu_exit = True
 
 
         elif main_sel == 4:
-            print("Admin console...")
+            admin_menu_items = [
+                "View Account Summary",
+                "Enable/Disable MFA on Root Account",
+                "List All Users and Roles",
+                "List All Policies and Their Usage",
+                "Audit IAM Configuration",
+                "Generate IAM Report",
+                "Export Configuration for Backup",
+                "Return to Main Menu"
+            ]
+
+            admin_menu = TerminalMenu(
+                menu_entries=admin_menu_items,
+                title="Admin Console",
+                cycle_cursor=True,
+            )
+
+            admin_menu_exit = False
+            while not admin_menu_exit:
+                admin_sel = admin_menu.show()
+                if admin_sel == 0:
+                    print("View Account Summary")
+                elif admin_sel == 1:
+                    print("Enable/Disable MFA on Root Account")
+                elif admin_sel == 2:
+                    print("List All Users and Roles")
+                elif admin_sel == 3:
+                    print("List All Policies and Their Usage")
+                elif admin_sel == 4:
+                    print("Audit IAM Configuration")
+                elif admin_sel == 5:
+                    print("Generate IAM Report")
+                elif admin_sel == 6:
+                    print("Export Configuration for Backup")
+                elif admin_sel == 7:
+                    print("Returning to Main Menu...")
+                    admin_menu_exit = True
+
 
         elif main_sel == 5:
             print("Exiting the programme..")
