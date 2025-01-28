@@ -1,11 +1,18 @@
-from iam import iam_policy, users
+from iam import iam_policy, users, roles, groups
 from iam import iam_client
 import getpass
 from simple_term_menu import TerminalMenu
 
 def main():
     main_menu_title = "Welcome to the PYAM CLI Tool"
-    main_menu_items = ["IAM Policies", "IAM Users", "Roles", "Groups", "Admin Panel", "Quit"]
+    main_menu_items = [
+        "IAM Policies",
+        "IAM Users",
+        "Roles",
+        "Groups",
+        "Admin Panel",
+        "Quit"
+    ]
     main_menu_exit = False
 
     main_menu = TerminalMenu(
@@ -18,7 +25,14 @@ def main():
         main_sel = main_menu.show()
         if main_sel == 0:
             policy_menu_title = "IAM Policy Administration"
-            policy_menu_items = ["Policy Creation", "Delete Local Policy Files", "List or Delete Policy Within AWS", "Inspect Policy", "Return to main menu"]
+            policy_menu_items = [
+                "Policy Creation",
+                "Delete Local Policy Files",
+                "List or Delete Policy Within AWS",
+                "Inspect Policy",
+                "Return to main menu"
+            ]
+
             policy_menu_exit = False
 
             policy_menu = TerminalMenu(
@@ -87,7 +101,13 @@ def main():
 
         elif main_sel == 1:
             user_menu_title = "IAM User Administration"
-            user_menu_items = ["IAM User Creation", "Interact with IAM User", "List IAM Users", "Delete IAM User", "Return to Main Menu"]
+            user_menu_items = [
+                "IAM User Creation",
+                "Interact with IAM User",
+                "List IAM Users",
+                "Delete IAM User",
+                "Return to Main Menu"
+            ]
             user_menu_exit = False
 
             user_menu = TerminalMenu(
@@ -314,7 +334,13 @@ def main():
 
                             elif interact_user_sel == 7:
                                 print("listing credentials...")
-                                creds_options = ["access key", "certificate", "public ssh key", "service credentials","mfa devices"]
+                                creds_options = [
+                                    "access key",
+                                    "certificate",
+                                    "public ssh key",
+                                    "service credentials",
+                                    "mfa devices"
+                                ]
                                 creds_options_string = ", ".join(creds_options)
                                 creds_choice = input(f"Which type of credentials would you like to list? You can choose from the following: {creds_options_string}: ")
                                 if creds_choice.lower() not in creds_options:
@@ -500,7 +526,17 @@ def main():
 
         elif main_sel == 2:
             roles_menu_title = "IAM Role Administration"
-            roles_menu_items = [f"Create Role", "List Roles", "Edit Trust Policy", "Create Trust Policy", "Attach Policy To Role", "Detach Policy From Role", "Delete Role", "Disable/Enable Role", "Return to Main Menu"]
+            roles_menu_items = [
+                f"Create Role",
+                "List Roles",
+                "Edit Trust Policy",
+                "Create Trust Policy",
+                "Attach Policy To Role",
+                "Detach Policy From Role",
+                "Delete Role",
+                "Disable/Enable Role",
+                "Return to Main Menu"
+            ]
             role_menu_exit = False
             role_menu = TerminalMenu(
                 menu_entries=roles_menu_items,
@@ -510,7 +546,13 @@ def main():
             while not role_menu_exit:
                 role_sel = role_menu.show()
                 if role_sel == 0:
-                    print("Create Role")
+                    name = input("Enter your role name: ")
+                    role_type = input("What type of role would you like to create? ")
+                    # add menu for creating either roel for 1. aws service 2. aws account
+                    description = input("Enter the role's description: ")
+                    assume_role_type = input("What service would you like this role to assume? for example ec2, iam: ")
+                    role_creation = roles.create_role(role_name=name, description=description, assume_role_type=assume_role_type)
+                    print(role_creation)
                 elif role_sel == 1:
                     print("List Roles")
                 elif role_sel == 2:
@@ -531,7 +573,18 @@ def main():
 
         elif main_sel == 3:
             groups_menu_title = "IAM Group Administration"
-            groups_menu_items = [f"Create Group", "List Groups", "Attach Policy To Group", "Detach Policy From Group", "List Policies Attached to Group", "List Users in Group", "Add User from Group", "Remove User from Group", "Delete Group", "Return to Main Menu"]
+            groups_menu_items = [
+                f"Create Group",
+                "List Groups",
+                "Attach Policy To Group",
+                "Detach Policy From Group",
+                "List Policies Attached to Group",
+                "List Users in Group",
+                "Add User from Group",
+                "Remove User from Group",
+                "Delete Group",
+                "Return to Main Menu"
+            ]
             groups_menu_exit = False
             groups_menu = TerminalMenu(
                 menu_entries=groups_menu_items,
