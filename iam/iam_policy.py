@@ -276,5 +276,3 @@ def list_policies_in_aws(arn, policy_type):
         else:
             return [policy['PolicyName'] for policy in all_policies]
 
-
-# edit all functions to change error handling to deliver actual error code to main.py

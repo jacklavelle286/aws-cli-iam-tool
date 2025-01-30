@@ -1,5 +1,6 @@
 from . import iam_client
 from . import json
+from . import iam_policy
 
 
 def create_role(role_name, description, assume_role_type_value, assume_role_entity_value, user):
@@ -66,7 +67,6 @@ class NoRolesFoundException(Exception):
     pass
 
 
-
 def list_roles():
     try:
         response = iam_client.list_roles()
@@ -79,3 +79,18 @@ def list_roles():
     except iam_client.exceptions.ServiceFailureException as e:
         return e
 
+class InvalidPolicy(Exception):
+    """Exception raised when no Roles are found."""
+    pass
+
+def attach_policy_to_role(role_name, policy):
+    list_of_policy_arns = iam_policy.list_policies_in_aws(arn=True, policy_type="All")
+    if policy not in list_of_policy_arns:
+        raise InvalidPolicy("Invalid Arn")
+
+    else:
+        try:
+            attach_role_policy = iam_client.attach_role_policy(RoleName=role_name, PolicyArn=policy)
+            return f"Role {role_name} succesfully attached to policy {policy}"
+        except 
+    #

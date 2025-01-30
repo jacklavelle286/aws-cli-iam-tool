@@ -527,10 +527,8 @@ def main():
         elif main_sel == 2:
             roles_menu_title = "IAM Role Administration"
             roles_menu_items = [
-                f"Create Role",
+                "Create Role",
                 "List Roles",
-                "Edit Trust Policy",
-                "Create Trust Policy",
                 "Attach Policy To Role",
                 "Detach Policy From Role",
                 "Delete Role",
@@ -581,18 +579,16 @@ def main():
                         for role in list_of_roles:
                             print(f"-{role}")
                 elif role_sel == 2:
-                    print("Edit Trust Policy")
-                elif role_sel == 3:
-                    print("Create Trust Policy")
-                elif role_sel == 4:
                     print("Attach Policy To Role")
-                elif role_sel == 5:
+                    attach = roles.attach_policy_to_role(role_name="assd", policy="arn:aws:iam::762233763594:policy/asssasaas")
+                    print(attach)
+                elif role_sel == 3:
                     print("Detach Policy From Role")
-                elif role_sel == 6:
+                elif role_sel == 4:
                     print("Delete Role")
-                elif role_sel == 7:
+                elif role_sel == 5:
                     print("Disable/Enable Role")
-                elif role_sel == 8:
+                elif role_sel == 6:
                     role_menu_exit = True
 
 
