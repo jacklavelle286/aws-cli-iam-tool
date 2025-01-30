@@ -547,12 +547,29 @@ def main():
                 role_sel = role_menu.show()
                 if role_sel == 0:
                     name = input("Enter your role name: ")
-                    role_type = input("What type of role would you like to create? ")
-                    # add menu for creating either roel for 1. aws service 2. aws account
                     description = input("Enter the role's description: ")
-                    assume_role_type = input("What service would you like this role to assume? for example ec2, iam: ")
-                    role_creation = roles.create_role(role_name=name, description=description, assume_role_type=assume_role_type)
-                    print(role_creation)
+                    role_type = input("What type of role would you like to create? ")
+                    role_type_items = [
+                        "Role for IAM User",
+                        "Role For AWS Service",
+                    ]
+                    role_type_exit = False
+                    role_type = TerminalMenu(
+                        menu_entries=role_type_items,
+                        cycle_cursor=True,
+                    )
+                    while not role_type_exit:
+                        role_type_sel = role_type.show()
+                        if role_type_sel == 0:
+                            account_number = "Enter an AWS Account number:  "
+                            role_creation = roles.create_role(user=True, role_name=name, description=description, assume_role_type_value="AWS", assume_role_entity_value=account_number)
+                            print(role_creation)
+                        elif role_type_sel == 1:
+                            # role for aws service
+                            aws_service = input("What service would you like this role to assume? for example ec2, iam: ")
+                            role_creation = roles.create_role(user=False, role_name=name, description=description, assume_role_type_value="AWS", assume_role_entity_value=account_number)
+                            print(role_creation)
+
                 elif role_sel == 1:
                     print("List Roles")
                 elif role_sel == 2:
