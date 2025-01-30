@@ -548,7 +548,7 @@ def main():
                 if role_sel == 0:
                     name = input("Enter your role name: ")
                     description = input("Enter the role's description: ")
-                    role_type = input("What type of role would you like to create? ")
+                    print("What type of role would you like to create? ")
                     role_type_items = [
                         "Role for IAM User",
                         "Role For AWS Service",
@@ -561,14 +561,16 @@ def main():
                     while not role_type_exit:
                         role_type_sel = role_type.show()
                         if role_type_sel == 0:
-                            account_number = "Enter an AWS Account number:  "
+                            account_number = input("Enter an AWS Account number:  ")
                             role_creation = roles.create_role(user=True, role_name=name, description=description, assume_role_type_value="AWS", assume_role_entity_value=account_number)
                             print(role_creation)
+                            role_type_exit = True
                         elif role_type_sel == 1:
                             # role for aws service
                             aws_service = input("What service would you like this role to assume? for example ec2, iam: ")
-                            role_creation = roles.create_role(user=False, role_name=name, description=description, assume_role_type_value="AWS", assume_role_entity_value=account_number)
+                            role_creation = roles.create_role(user=False, role_name=name, description=description, assume_role_type_value="Service", assume_role_entity_value=aws_service)
                             print(role_creation)
+                            role_type_exit = True
 
                 elif role_sel == 1:
                     print("List Roles")
