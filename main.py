@@ -573,7 +573,13 @@ def main():
                             role_type_exit = True
 
                 elif role_sel == 1:
-                    print("List Roles")
+                    print("Listing roles..")
+                    list_of_roles = roles.list_roles()
+                    if isinstance(list_of_roles, str):
+                        print(list_of_roles)
+                    elif list_of_roles:
+                        for role in list_of_roles:
+                            print(f"-{role}")
                 elif role_sel == 2:
                     print("Edit Trust Policy")
                 elif role_sel == 3:

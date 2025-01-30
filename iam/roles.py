@@ -60,3 +60,22 @@ def create_role(role_name, description, assume_role_type_value, assume_role_enti
         return f"Malformed Policy Document: {e} - {policy}"
     except Exception as e:
         return f"An unexpected error occurred: {e}"
+
+class NoRolesFoundException(Exception):
+    """Exception raised when no Roles are found."""
+    pass
+
+
+
+def list_roles():
+    try:
+        response = iam_client.list_roles()
+        roles = response.get("Roles", [])
+        roles_list = [role['RoleName'] for role in roles]
+        if not roles_list:
+            raise NoRolesFoundException("No IAM users found in the account.")
+        return roles_list
+
+    except iam_client.exceptions.ServiceFailureException as e:
+        return e
+
