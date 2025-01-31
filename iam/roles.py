@@ -80,17 +80,20 @@ def list_roles():
         return e
 
 class InvalidPolicy(Exception):
-    """Exception raised when no Roles are found."""
     pass
 
 def attach_policy_to_role(role_name, policy):
-    list_of_policy_arns = iam_policy.list_policies_in_aws(arn=True, policy_type="All")
-    if policy not in list_of_policy_arns:
-        raise InvalidPolicy("Invalid Arn")
+    try:
+        list_of_policy_arns = iam_policy.list_policies_in_aws(arn=True, policy_type="All")
+        if policy not in list_of_policy_arns:
+            raise ValueError(f"Invalid Policy ARN: {policy}.")
 
-    else:
-        try:
-            attach_role_policy = iam_client.attach_role_policy(RoleName=role_name, PolicyArn=policy)
-            return f"Role {role_name} succesfully attached to policy {policy}"
-        except 
-    #
+        iam_client.attach_role_policy(RoleName=role_name, PolicyArn=policy)
+        return f"Policy {policy} successfully attached to role {role_name}"
+
+    except iam_client.exceptions.PolicyNotAttachableException as e:
+        return f"Policy is not attachable: {e}"
+    except iam_client.exceptions.NoSuchEntityException as e:
+        return f"Error: Role {role_name} does not exist: {e}"
+    except Exception as e:
+        return f"An unexpected error occurred: {e}"

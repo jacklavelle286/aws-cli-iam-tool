@@ -560,19 +560,19 @@ def main():
                         role_type_sel = role_type.show()
                         if role_type_sel == 0:
                             account_number = input("Enter an AWS Account number:  ")
-                            role_creation = roles.create_role(user=True, role_name=name, description=description, assume_role_type_value="AWS", assume_role_entity_value=account_number)
+                            role_creation = roles_in_account.create_role(user=True, role_name=name, description=description, assume_role_type_value="AWS", assume_role_entity_value=account_number)
                             print(role_creation)
                             role_type_exit = True
                         elif role_type_sel == 1:
                             # role for aws service
                             aws_service = input("What service would you like this role to assume? for example ec2, iam: ")
-                            role_creation = roles.create_role(user=False, role_name=name, description=description, assume_role_type_value="Service", assume_role_entity_value=aws_service)
+                            role_creation = roles_in_account.create_role(user=False, role_name=name, description=description, assume_role_type_value="Service", assume_role_entity_value=aws_service)
                             print(role_creation)
                             role_type_exit = True
 
                 elif role_sel == 1:
                     print("Listing roles..")
-                    list_of_roles = roles.list_roles()
+                    list_of_roles = roles_in_account.list_roles()
                     if isinstance(list_of_roles, str):
                         print(list_of_roles)
                     elif list_of_roles:
@@ -580,8 +580,20 @@ def main():
                             print(f"-{role}")
                 elif role_sel == 2:
                     print("Attach Policy To Role")
-                    attach = roles.attach_policy_to_role(role_name="assd", policy="arn:aws:iam::762233763594:policy/asssasaas")
-                    print(attach)
+                    response = iam_client.list_roles()
+                    roles_in_account = response.get("Roles", [])
+                    roles_list = [role['RoleName'] for role in roles_in_account]
+                    print("Here is a list of roles in your account: ")
+                    for role in roles_list:
+                        print(f"-{role}")
+                    role_name = input("Choose your role name: ")
+                    if role_name not in roles_list:
+                        print("Role not valid.")
+                    else:
+                        policy_arn = input("Choose your policy arn: ")
+                        attach = roles.attach_policy_to_role(role_name=role_name, policy=policy_arn)
+                        print(attach)
+
                 elif role_sel == 3:
                     print("Detach Policy From Role")
                 elif role_sel == 4:
