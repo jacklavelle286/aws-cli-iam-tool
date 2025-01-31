@@ -97,3 +97,40 @@ def attach_policy_to_role(role_name, policy):
         return f"Error: Role {role_name} does not exist: {e}"
     except Exception as e:
         return f"An unexpected error occurred: {e}"
+
+class NoPolicyRolesFoundException(Exception):
+    pass
+
+
+def list_managed_policies_attached_to_role(role_name):
+    policy_names = iam_client.list_attached_role_policies(RoleName=role_name)
+    if not policy_names:
+        raise NoPolicyRolesFoundException("No Roles found in the account.")
+    policy = policy_names["AttachedPolicies"]
+    policy_arn_list = []
+    for item in policy:
+        policy_arn = item["PolicyArn"]
+        policy_arn_list.append(policy_arn)
+    return policy_arn_list
+
+
+
+def list_roles():
+    try:
+        response = iam_client.list_roles()
+        roles_in_account = response.get("Roles", [])
+        roles_list = [role['RoleName'] for role in roles_in_account]
+        return roles_list
+    except Exception as e:
+        return f"Unable to list roles. {e}"
+
+
+def detach_policy_from_role(role_name, policy):
+    try:
+        list_of_policy_arns = iam_policy.list_policies_in_aws(arn=True, policy_type="All")
+        if policy not in list_of_policy_arns:
+            raise ValueError(f"Invalid Policy ARN: {policy}.")
+        iam_client.detach_role_policy(RoleName=role_name, PolicyArn=policy)
+        return f"Policy {policy} successfully detached from role {role_name}"
+    except Exception as e:
+        return f"An unexpected error occurred: {e}"
