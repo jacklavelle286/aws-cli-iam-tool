@@ -610,7 +610,6 @@ def main():
                         print("Role not valid.")
                     else:
                         list_of_policies_attached_to_role = roles.list_managed_policies_attached_to_role(role_name)
-
                         if not list_of_policies_attached_to_role:
                             print("No policies attached to this role.")
                         else:
@@ -618,14 +617,41 @@ def main():
                                 menu_entries=list_of_policies_attached_to_role,
                                 cycle_cursor=True,
                             )
-
                             selected_index = listed_attached_policies_menu.show()  # Get index of selection
                             selected_policy = list_of_policies_attached_to_role[
                                 selected_index]  # Get actual value
                             detach = roles.detach_policy_from_role(role_name=role_name, policy=selected_policy)
                             print(detach)
                 elif role_sel == 4:
-                    print("Delete Role")
+                    list_of_roles = roles.list_roles()
+                    role_name_to_delete = input("Enter your role name to delete: ")
+                    if role_name_to_delete not in list_of_roles:
+                        print(f"{role_name_to_delete} not found.")
+                    else:
+                        print("Detaching policies..")
+                        list_detach_policies = roles.list_managed_policies_attached_to_role(role_name=role_name_to_delete)
+                        if isinstance(list_detach_policies, str):
+                            print(list_detach_policies)
+                        elif list_detach_policies:
+                            for policy in list_detach_policies:
+                                detach = roles.detach_policy_from_role(role_name_to_delete, policy)
+                                print(detach)
+                        print("Deleting inline roles...")
+                        list_inline_policies = roles.list_inline_role_policies(role_name_to_delete)
+                        if isinstance(list_inline_policies, str):
+                            print(list_inline_policies)
+                        elif list_inline_policies:
+                            for policy in list_inline_policies:
+                                delete = roles.delete_inline_policy_role(role_name_to_delete, policy)
+                                print(delete)
+                        print("Removing role from instance profile..")
+                        delete_instance_profile = roles.remove_role_from_instance_profile(role_name_to_delete)
+                        print(delete_instance_profile)
+                        print("Deleting role..")
+                        delete = roles.delete_role(role_name_to_delete)
+                        print(delete)
+
+
                 elif role_sel == 5:
                     print("Disable/Enable Role")
                 elif role_sel == 6:

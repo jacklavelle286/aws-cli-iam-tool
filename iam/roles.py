@@ -114,6 +114,47 @@ def list_managed_policies_attached_to_role(role_name):
     return policy_arn_list
 
 
+def list_inline_role_policies(role_name):
+    policy_names = iam_client.list_role_policies(RoleName=role_name)
+    if not policy_names:
+        raise NoPolicyRolesFoundException("No Inline policies found on the role.")
+    policy = policy_names["PolicyNames"]
+    inline_policy_list = []
+    for item in policy:
+        inline_policy_list.append(item)
+    return inline_policy_list
+
+
+def delete_inline_policy_role(role_name, policy_name):
+    try:
+        iam_client.delete_role_policy(RoleName=role_name, PolicyName=policy_name)
+        return f"Policy {policy_name} deleted from role: {role_name}"
+    except iam_client.exceptions.NoSuchEntityException as e:
+        return f"Error - policy not found: {e}"
+    except Exception as e:
+        return f"Error: {e}"
+
+def remove_role_from_instance_profile(role_name):
+    list_of_instance_profiles = iam_client.list_instance_profiles_for_role(RoleName=role_name)
+    if not list_of_instance_profiles:
+        return f"No instance profiles found."
+    else:
+        instance_profile_names = []
+        instance_profiles = list_of_instance_profiles["InstanceProfiles"]
+        for profile in instance_profiles:
+            profile_name = profile["InstanceProfileName"]
+            instance_profile_names.append(profile_name)
+        for item in instance_profile_names:
+            try:
+               iam_client.remove_role_from_instance_profile(InstanceProfileName=item, RoleName=role_name)
+               return f"Removed instance profile {item} from role: {role_name}"
+            except iam_client.exceptions.NoSuchEntityException as e:
+                return f"Error: {e}"
+            except Exception as e:
+                return f"Error: {e}"
+
+
+
 
 def list_roles():
     try:
@@ -134,3 +175,14 @@ def detach_policy_from_role(role_name, policy):
         return f"Policy {policy} successfully detached from role {role_name}"
     except Exception as e:
         return f"An unexpected error occurred: {e}"
+
+
+
+
+def delete_role(role_name):
+    try:
+        iam_client.delete_role(RoleName=role_name)
+        return f"Succesfully deleted {role_name}"
+    except Exception as e:
+        return f"Error deleting role: {e}"
+
