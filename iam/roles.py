@@ -231,3 +231,4 @@ def enable_role(role_name):
         return f"Role now enabled: {detach}"
     else:
         return f"Role {role_name} is not disabled."
+

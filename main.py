@@ -700,11 +700,21 @@ def main():
             while not groups_menu_exit:
                 group_sel = groups_menu.show()
                 if group_sel == 0:
-                    print("Create Group")
+                    group_name = input("Enter your group name. ")
+                    new_group = groups.create_iam_group(group_name)
+                    print(new_group)
                 elif group_sel == 1:
-                    print("List Groups")
+                    list_of_groups = groups.list_groups()
+                    if isinstance(list_of_groups, str):
+                        print(list_of_groups)
+                    elif list_of_groups:
+                        print("List of Groups:")
+                        for group in list_of_groups:
+                            print(f"- {group}")
                 elif group_sel == 2:
                     print("Attach Policy To Group")
+                    list_of_policies = groups.attach_policy_to_group(policy_arn="arn:aws:iam::aws:policy/service-role/SageMakerStudioQueryExecutionRolePolicy")
+                    print(list_of_policies)
                 elif group_sel == 3:
                     print("Detach Policy From Group")
                 elif group_sel == 4:
