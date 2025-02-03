@@ -61,8 +61,8 @@ Managing IAM resources using the AWS CLI can be complex and time-consuming, espe
 - **Delete IAM Roles**:
   - Remove roles safely, ensuring associated resources are detached.
 
-- **Single Command to Assume IAM Roles**:
-  - Through simply passing the role name when you are locally authenticated as an IAM user, you can Assume any role you have permissions to assume. 
+- **Disable and Enable Roles**:
+  - Attaches or detaches a deny all policy to block the role from being used, or allow it to be used again. 
 ---
 
 
@@ -70,9 +70,8 @@ Managing IAM resources using the AWS CLI can be complex and time-consuming, espe
 
 ## Future Vision
 The tool is being developed into a fully-fledged CLI application with:
-- Installation via `pip` (`pip install aws-cli-iam-tool`).
-- Use of a library like `prompt_toolkit` to improve user experience
-- Tab-completion for easier navigation.
+- Menu based interaction with all inputs. 
+- Admin console to perform higher level commands.
 
 ---
 
