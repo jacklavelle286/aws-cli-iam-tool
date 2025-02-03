@@ -534,7 +534,8 @@ def main():
                 "Attach Policy To Role",
                 "Detach Policy From Role",
                 "Delete Role",
-                "Disable/Enable Role",
+                "Disable Role",
+                "Enable Role",
                 "Return to Main Menu"
             ]
             role_menu_exit = False
@@ -653,8 +654,26 @@ def main():
 
 
                 elif role_sel == 5:
-                    print("Disable/Enable Role")
+                    role_list = roles.list_roles()
+                    role_name = input("Enter a role to disable: ")
+                    if role_name not in role_list:
+                        print(f"Role {role_name} Not Found.")
+                    else:
+                        disable = roles.disable_role(role_name)
+                        print(disable)
+
                 elif role_sel == 6:
+                    role_list = roles.list_roles()
+                    role_name = input("Enter a role to enable: ")
+                    if role_name not in role_list:
+                        print(f"Role {role_name} Not Found.")
+                    else:
+                        enable = roles.enable_role(role_name)
+                        print(enable)
+
+
+
+                elif role_sel == 7:
                     role_menu_exit = True
 
 

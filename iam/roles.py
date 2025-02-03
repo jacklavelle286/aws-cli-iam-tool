@@ -1,6 +1,8 @@
 from . import iam_client
 from . import json
 from . import iam_policy
+from .iam_policy import get_iam_policy_arn
+from .users import list_certificate_ids
 
 
 def create_role(role_name, description, assume_role_type_value, assume_role_entity_value, user):
@@ -186,3 +188,46 @@ def delete_role(role_name):
     except Exception as e:
         return f"Error deleting role: {e}"
 
+
+
+def disable_role(role_name):
+    policy_attached = list_managed_policies_attached_to_role(role_name)
+    policy_names = []
+    for policy in policy_attached:
+        policy_name = policy.split("/")[-1]
+        policy_names.append(policy_name)
+    if "DenyAll" in policy_names:
+        return f"Role already disabled."
+    else:
+        policy_dict = {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "Deny",
+                    "Effect": "Deny",
+                    "Action": "*",
+                    "Resource": "*"
+                }
+            ]
+        }
+        deny_all = json.dumps(policy_dict)
+        # create deny all policy
+        list_of_policies = iam_policy.list_policies_in_aws(policy_type="All", arn=False)
+        if "DenyAll" not in list_of_policies:
+            iam_client.create_policy(PolicyName="DenyAll", PolicyDocument=deny_all)
+        arn_of_deny_all = iam_policy.get_iam_policy_arn("DenyAll")
+        attach = attach_policy_to_role(role_name=role_name, policy=arn_of_deny_all)
+        return f"{attach}: {role_name} succesfully disabled."
+
+def enable_role(role_name):
+    policy_attached = list_managed_policies_attached_to_role(role_name)
+    policy_names = []
+    for policy in policy_attached:
+        policy_name = policy.split("/")[-1]
+        policy_names.append(policy_name)
+    if "DenyAll" in policy_names:
+        deny_all = get_iam_policy_arn("DenyAll")
+        detach = detach_policy_from_role(role_name, policy=deny_all)
+        return f"Role now enabled: {detach}"
+    else:
+        return f"Role {role_name} is not disabled."
