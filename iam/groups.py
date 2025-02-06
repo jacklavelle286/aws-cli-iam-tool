@@ -153,7 +153,7 @@ def user_to_group(group_name, user, add=True):
             return "User already in group."
         else:
             try:
-                iam_client.user_to_group(GroupName=group_name, UserName=user)
+                iam_client.add_user_to_group(GroupName=group_name, UserName=user)
                 return f"Added {user} to {group_name}."
             except iam_client.exceptions.NoSuchEntityException as e:
                 return {f"{e}"}
@@ -164,21 +164,37 @@ def user_to_group(group_name, user, add=True):
         else:
             try:
                 iam_client.remove_user_from_group(GroupName=group_name, UserName=user)
-                return f"Remove {user} from {group_name}."
+                return f"Removed {user} from {group_name}."
             except iam_client.exceptions.NoSuchEntityException as e:
                 return {f"{e}"}
 
-def delete_imline_policies() # create this function then add it below
+def delete_inline_policies(group_name):
+    policies = list_group_policies(group_name=group_name, policy_type="Inline")
+    for policy in policies:
+        try:
+            iam_client.delete_group_policy(GroupName=group_name, PolicyName=policy)
+            return f"Deleted {policy}"
+        except Exception as e:
+            return f"{e}"
+
+
 
 def delete_group(group_name):
     # remove users
     users_in_group = list_users_in_group(group_name)
-    for user in users_in_group:
-        remove = user_to_group(group_name, user, add=False)
-    # detach policies
+    if isinstance(users_in_group, str):
+        print(users_in_group)
+    elif users_in_group:
+        for item in users_in_group:
+            remove = user_to_group(group_name, item, add=False)
+            print(remove)
+        # detach policies
     policies = list_group_policies(group_name, policy_type="All")
     for policy in policies:
         detach = detach_policy_from_group(policy_arn=policy, group_name=group_name)
+        print(detach)
+    # delete inline policies
+    delete_inline = delete_inline_policies(group_name)
     # delete group
     try:
         iam_client.delete_group(GroupName=group_name)

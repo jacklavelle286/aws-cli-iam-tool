@@ -724,8 +724,11 @@ def main():
                 elif group_sel == 4:
                     group_name = input("Choose a group: ")
                     list_of_policies = groups.list_group_policies(group_name=group_name, policy_type="All")
-                    for policy in list_of_policies:
-                        print(f"-{policy}")
+                    if isinstance(list_of_policies, str):
+                        print(list_of_policies)
+                    elif list_of_policies:
+                        for policy in list_of_policies:
+                            print(f"-{policy}")
                 elif group_sel == 5:
                     group_name = input("Choose a group name: ")
                     list_users_in_group = groups.list_users_in_group(group_name=group_name)
