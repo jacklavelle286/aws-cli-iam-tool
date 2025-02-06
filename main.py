@@ -686,7 +686,7 @@ def main():
                 "Detach Policy From Group",
                 "List Policies Attached to Group",
                 "List Users in Group",
-                "Add User from Group",
+                "Add User To Group",
                 "Remove User from Group",
                 "Delete Group",
                 "Return to Main Menu"
@@ -712,21 +712,44 @@ def main():
                         for group in list_of_groups:
                             print(f"- {group}")
                 elif group_sel == 2:
-                    print("Attach Policy To Group")
-                    list_of_policies = groups.attach_policy_to_group(policy_arn="arn:aws:iam::aws:policy/service-role/SageMakerStudioQueryExecutionRolePolicy")
-                    print(list_of_policies)
+                    group = input("Choose a group: ")
+                    policy = input("Choose a policy arn: ")
+                    attach_attempt = groups.attach_policy_to_group(policy_arn=policy, group_name=group)
+                    print(attach_attempt)
                 elif group_sel == 3:
-                    print("Detach Policy From Group")
+                    group_name = input("Choose a group: ")
+                    policy_arn = input("Choose a policy arn: ")
+                    detach = groups.detach_policy_from_group(policy_arn, group_name)
+                    print(detach)
                 elif group_sel == 4:
-                    print("List Policies Attached to Group")
+                    group_name = input("Choose a group: ")
+                    list_of_policies = groups.list_group_policies(group_name=group_name, policy_type="All")
+                    for policy in list_of_policies:
+                        print(f"-{policy}")
                 elif group_sel == 5:
-                    print("List Users in Group")
+                    group_name = input("Choose a group name: ")
+                    list_users_in_group = groups.list_users_in_group(group_name=group_name)
+                    if not list_users_in_group:
+                        print(list_users_in_group)
+                    elif isinstance(list_users_in_group, str):
+                        print(list_users_in_group)
+                    elif list_users_in_group:
+                        for user in list_users_in_group:
+                            print(f"-{user}")
                 elif group_sel == 6:
-                    print("Add User to Group")
+                    group = input("Choose a group name: ")
+                    user = input("Choose a user: ")
+                    add = groups.user_to_group(group, user)
+                    print(add)
                 elif group_sel == 7:
-                    print("Remove User from Group")
+                    group = input("Choose a group name: ")
+                    user = input("Choose a user: ")
+                    remove = groups.user_to_group(group, user, add=False)
+                    print(remove)
                 elif group_sel == 8:
-                    print("Delete Group")
+                    delete = input("Choose a group to Delete: ")
+                    delete_try = groups.delete_group(delete)
+                    print(delete_try)
                 elif group_sel == 9:
                     print("Returning to Main Menu...")
                     groups_menu_exit = True
