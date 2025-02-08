@@ -2,13 +2,13 @@
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "ls",
-            "Effect": "Deny",
+            "Sid": "5rrf",
+            "Effect": "#",
             "Action": [
-                "*"
+                ":"
             ],
             "Resource": [
-                "*"
+                ""
             ]
         }
     ]

@@ -49,29 +49,31 @@ def main():
                     iam_policy.policy_file_name = iam_policy.create_iam_policy_file(iam_policy.user_inputs)
                     iam_policy.create_policy(iam_policy.policy_file_name)
                 elif policy_menu_sel == 1:
-                    local_deletion_choice = input("Either name a local file by name to delete it, or select * to remove all local policy files: ")
                     policy_list = iam_policy.list_local_policy_files()
-                    if local_deletion_choice != "*" and local_deletion_choice not in policy_list:
-                        print("Invalid choice - try again - either not a wildcard, or policy doesn't exist locally.")
-                        list_option = input("Press 'l' if you want to list the policies locally: ").lower()
-                        if list_option != "l":
-                            pass
-                        else:
-                            policies = iam_policy.list_local_policy_files()
-                            print("Local policies: \n")
-                            for item in policies:
-                                print(item)
-                    elif local_deletion_choice == "*":
-                        print("Deleting all locally stored IAM policy files...")
-                        iam_policy.delete_all_policies_locally()
+                    policy_list_menu_items = []
+                    for policy in policy_list:
+                        policy_list_menu_items.append(policy)
 
-                    else:
-                        print(f"Deleting {local_deletion_choice}...")
-                        iam_policy.delete_policy_file(local_deletion_choice)
+                    policy_list_menu_exit = False
+                    if not policy_list:
+                        print("No policies found locally. ")
+                        policy_list_menu_exit = True
+
+                    policy_list_menu = TerminalMenu(
+                        menu_entries=policy_list_menu_items,
+                        cycle_cursor=True,
+                    )
+                    while not policy_list_menu_exit:
+                        selected_index = policy_list_menu.show()
+                        selected_policy = policy_list_menu_items[selected_index]
+                        delete = iam_policy.delete_policy_file(selected_policy)
+                        policy_list_menu_exit = True
 
                 elif policy_menu_sel == 2:
                     print("Listing or deleting policies in AWS...")
                     print("Which policy do you want to delete within AWS?\n")
+                    # add list of local iam policies here:
+
                     print("listing policies in AWS...")
                     policy_list = iam_policy.list_policies_in_aws(arn=False, policy_type='Local')
                     for item in policy_list:
@@ -362,6 +364,10 @@ def main():
                                     if isinstance(certs_list, str):
                                         print(certs_list)
                                     elif certs_list:
+                                        selected_index = listed_attached_policies_menu.show()  # Get index of selection
+                                        selected_policy = list_of_policies_attached_to_role[selected_index]  # Get actual value
+                                        detach = roles.detach_policy_from_role(role_name=role_name, policy=selected_policy)
+                                        print(detach)
                                         print("Certificates attached: ")
                                         for cert in certs_list:
                                             print(f"- {cert}")
@@ -619,8 +625,7 @@ def main():
                                 cycle_cursor=True,
                             )
                             selected_index = listed_attached_policies_menu.show()  # Get index of selection
-                            selected_policy = list_of_policies_attached_to_role[
-                                selected_index]  # Get actual value
+                            selected_policy = list_of_policies_attached_to_role[selected_index]  # Get actual value
                             detach = roles.detach_policy_from_role(role_name=role_name, policy=selected_policy)
                             print(detach)
                 elif role_sel == 4:

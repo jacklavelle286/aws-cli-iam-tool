@@ -4,6 +4,7 @@ from . import json
 from . import subprocess
 from iam import users
 from iam import groups
+from . import TerminalMenu
 
 
 # User Input Functionality
@@ -16,6 +17,7 @@ def get_user_input_policy():
         "name": input("Enter your policy name: ").strip().lower(),
         "sid": input("Give me your SID: ").strip(),
         "effect": input("Give me your effect (Allow or Deny): ").strip().capitalize(),
+        # update here so that the user is directed to the menu instead
         "service": input("Give me your service (e.g., s3 or * for all services): ").strip().lower(),
         "action": input("Give me your action (e.g., GetObject or * for all actions): ").strip(),
         "resource": input("Give me your resource ARN (e.g., arn:aws:s3:::bucket-name): ").strip()
@@ -54,7 +56,8 @@ def create_iam_policy_file(input_data):
     add_more = input("Do you want to add another statement block? (yes/no): ").strip().lower()
     while add_more == "yes":
         sid = input("Give me another SID: ").strip()
-        effect = input("Give me the effect (Allow or Deny): ").strip().capitalize()
+
+        effect = allow_or_deny_option
         service = input("Give me the service (e.g., s3): ").strip().lower()
         action = input("Give me the action (e.g., GetObject): ").strip()
         resource = input("Give me the resource ARN: ").strip()
