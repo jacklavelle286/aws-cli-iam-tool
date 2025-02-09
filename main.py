@@ -104,15 +104,17 @@ def main():
                                 delete_aws_policy_exit = True
 
                 elif policy_menu_sel == 3:
-                    print("Inpsecting policy...")
-                    inspect_policy = input("Choose a policy to inspect: ")
-                    policy_object = iam_policy.describe_policy(inspect_policy)
-                    if policy_object is None:
-                        print("Error when fetching policy document document. ")
-                    elif not policy_object:
-                        print("Policy document not found.")
-                    else:
-                        print(policy_object)
+                    policy_in_aws = iam_policy.list_policies_in_aws(arn=False, policy_type="All")
+                    policy_menu_describe = [policy for policy in policy_in_aws]
+                    if isinstance(policy_menu, str):
+                        print(policy_menu)
+                        policy_menu_exit = True
+                    elif policy_menu_describe:
+                        policy_menu_inspect = TerminalMenu(policy_menu_describe)
+                        selected_index = policy_menu_inspect.show()  # Get index of selection
+                        selected_policy = policy_menu_describe[selected_index]  # Get actual value
+                        describe = iam_policy.describe_policy(selected_policy)
+                        print(describe)
 
                 elif policy_menu_sel == 4:
                     print("Returning to main menu..")
