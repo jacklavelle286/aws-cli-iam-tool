@@ -30,7 +30,7 @@ def main():
             policy_menu_items = [
                 "Policy Creation",
                 "Delete Local Policy Files",
-                "List or Delete Policy Within AWS",
+                "Delete Policy Within AWS",
                 "Inspect Policy",
                 "Return to main menu"
             ]
@@ -68,23 +68,40 @@ def main():
                         selected_policy = policy_list_menu_items[selected_index]
                         delete = iam_policy.delete_policy_file(selected_policy)
                         policy_list_menu_exit = True
-
                 elif policy_menu_sel == 2:
-                    print("Listing or deleting policies in AWS...")
                     print("Which policy do you want to delete within AWS?\n")
-                    # add list of local iam policies here:
+                    list_of_policies = iam_policy.list_policies_in_aws(arn=False, policy_type="Local")
 
-                    print("listing policies in AWS...")
-                    policy_list = iam_policy.list_policies_in_aws(arn=False, policy_type='Local')
-                    for item in policy_list:
-                        print(item)
-                    policy_choice = input("Type which policy you would like to delete in AWS (Caution!! This will detach from any users, groups or roles currently using this policy and delete it: ")
-                    if policy_choice not in policy_list:
-                        print("policy is not found in AWS. ")
+                    if isinstance(list_of_policies, str):
+                        print(list_of_policies)
+                        policy_menu_exit = True
+                    elif list_of_policies:
+                        delete_aws_policy_items = [policy for policy in list_of_policies]
+                        delete_aws_policy_exit = False
 
-                    else:
-                        iam_policy.delete_policy_remotely(policy_choice)
-                        print(f"deleting {policy_choice}")
+                        delete_aws_policy_menu = TerminalMenu(
+                            menu_entries=delete_aws_policy_items,
+                            cycle_cursor=True,
+                        )
+
+                        while not delete_aws_policy_exit:
+                            selected_index = delete_aws_policy_menu.show()  # Get index of selection
+                            if selected_index is None:  # Handle case when user cancels the selection
+                                print("No policy selected.")
+                                break
+
+                            selected_policy = delete_aws_policy_items[selected_index]  # Get actual policy name
+
+                            # Delete policy
+                            delete_response = iam_policy.delete_policy_remotely(selected_policy)
+                            print(delete_response)
+
+                            # Ask user if they want to delete another policy
+                            confirm_menu = TerminalMenu(["Delete another", "Exit"])
+                            confirm_selection = confirm_menu.show()
+
+                            if confirm_selection == 1:  # User chose "Exit"
+                                delete_aws_policy_exit = True
 
                 elif policy_menu_sel == 3:
                     print("Inpsecting policy...")

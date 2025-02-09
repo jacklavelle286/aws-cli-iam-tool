@@ -7,17 +7,30 @@ from iam import groups
 from . import TerminalMenu
 
 
-# User Input Functionality
+
 def get_user_input_policy():
     """
     Collect user input for policy details, handling wildcards for service and actions.
     Returns a dictionary with all input data.
     """
+
+    # Terminal menu for selecting Allow or Deny
+    allow_or_deny_title = "Choose Allow or Deny: "
+    allow_or_deny_items = ["Allow", "Deny"]
+    allow_or_deny = TerminalMenu(
+        menu_entries=allow_or_deny_items,
+        title=allow_or_deny_title,
+        cycle_cursor=True,
+    )
+
+    allow_or_deny_sel = allow_or_deny.show()
+    effect_choice = allow_or_deny_items[allow_or_deny_sel]  # Store selection
+
+    # Now, collect user input after selecting effect_choice
     input_data = {
         "name": input("Enter your policy name: ").strip().lower(),
         "sid": input("Give me your SID: ").strip(),
-        "effect": input("Give me your effect (Allow or Deny): ").strip().capitalize(),
-        # update here so that the user is directed to the menu instead
+        "effect": effect_choice,  # Now effect_choice is correctly set
         "service": input("Give me your service (e.g., s3 or * for all services): ").strip().lower(),
         "action": input("Give me your action (e.g., GetObject or * for all actions): ").strip(),
         "resource": input("Give me your resource ARN (e.g., arn:aws:s3:::bucket-name): ").strip()
@@ -29,7 +42,9 @@ def get_user_input_policy():
         input_data["action"] = "*"
     elif input_data["action"] == "*":
         print("Wildcard for action detected. This policy will apply to all actions for the specified service.")
+
     return input_data
+
 
 
 # IAM Policy File Creation Functionality
@@ -188,11 +203,11 @@ def delete_policy_remotely(new_policy):
     # Delete the policy after detachment
     try:
         iam_client.delete_policy(PolicyArn=policy_arn)
-        print(f"Policy '{new_policy}' deleted successfully.")
+        return f"Policy '{new_policy}' deleted successfully."
     except iam_client.exceptions.DeleteConflictException as e:
-        print(f"Cannot delete policy '{new_policy}' due to remaining attachments: {e}")
+        return f"Cannot delete policy '{new_policy}' due to remaining attachments: {e}"
     except Exception as e:
-        print(f"An error occurred while deleting the policy '{new_policy}': {e}")
+        return f"An error occurred while deleting the policy '{new_policy}': {e}"
 
 
 def detach_policy(username, target_type, policy_arn):
@@ -234,7 +249,7 @@ def delete_policy_file(new_policy):
     """
     Delete a policy JSON file locally.
     """
-    os.remove(f"output_policies/{new_policy}")
+    os.remove(f"output_policies/{new_policy}.json")
     print(f"policy successfully locally deleted: {new_policy}")
 
 
