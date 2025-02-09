@@ -7,7 +7,7 @@ def create_iam_user(username):
         if username == "":
             return None
         iam_client.create_user(UserName=username)
-        return f"Successfully created user:{username}"
+        return f"Successfully created user: {username}"
     except iam_client.exceptions.LimitExceededException as e:
         return f"Limit exceeded: {e}"
     except iam_client.exceptions.EntityAlreadyExistsException as e:

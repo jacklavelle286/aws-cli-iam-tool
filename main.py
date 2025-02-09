@@ -152,23 +152,22 @@ def main():
                         print(iam_user_creation)
                     elif iam_user_creation is None:
                         print(iam_user_creation)
-                    add_policy = input("Would you like to add a policy to your user?: (y or anything else to skip): ").lower()
-                    if add_policy != "y":
-                        print("Invalid option.")
-                    else:
-                        print("Adding policies")
-                        attach_choice = input("Enter 'attach' to specify a valid ARN, or type 'create' to create a new policy: ")
-                        if attach_choice.lower() == "attach":
-                            arn = input("Enter a valid ARN: ")
-                            valid_arns = iam_policy.list_policies_in_aws(arn=True, policy_type='All')
-                            print(
-                                f"Checking against all {len(valid_arns)} policies in your account to see if it exists...")
-                            if arn not in valid_arns:
-                                print("Invalid ARN: doesn't exist within your account.")
-                            else:
+                    print("Would you like to add a policy to your user?")
+                    policy_y_or_n = TerminalMenu(["Yes", "No"])
+                    choice = policy_y_or_n.show()
+                    if choice == 0:
+                        attach_choice = TerminalMenu(["Attach a Specific Policy", "Create a New Policy"])
+                        attach_choice = attach_choice.show()
+                        if attach_choice == 0:
+                            list_policy_arns = iam_policy.list_policies_in_aws(arn=True, policy_type="All")
+                            choose_arn = TerminalMenu(list_policy_arns)
+                            list_choice = choose_arn.show()
+                            if list_choice:
+                                # get option from index
+                                choice = list_policy_arns[list_choice]
                                 is_attached_already = users.list_attached_managed_user_policies(
                                     username=username)
-                                policy_name = arn.split('/')[-1]
+                                policy_name = choice.split('/')[-1]
                                 # Check if policy name is in the list of already attached policies
                                 if policy_name in is_attached_already:
                                     print("Policy already attached!")
@@ -176,9 +175,9 @@ def main():
                                     for item in is_attached_already:
                                         print(f"- {item}")
                                 else:
-                                    attach_attempt = users.attach_user_policy(username=username, policy_arn=arn)
+                                    attach_attempt = users.attach_user_policy(username=username, policy_arn=choice)
                                     print(attach_attempt)
-                        elif attach_choice.lower() == "create":
+                        elif choice == 1:
                             print("Creating new policy... ")
                             iam_policy.user_inputs = iam_policy.get_user_input_policy()
                             iam_policy.policy_file_name = iam_policy.create_iam_policy_file(
